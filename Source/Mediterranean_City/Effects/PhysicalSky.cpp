@@ -153,7 +153,7 @@ void APhysicalSky::UpdateSunPosition()
 		if(Sun->CastDynamicShadows == false)
 			Sun->CastDynamicShadows = true;
 		Sun->LightingChannels.bChannel0 = true;
-		Sun->bCastCloudShadows = false;
+		Sun->bCastCloudShadows = true;
 	}
 }
 
@@ -270,8 +270,8 @@ void APhysicalSky::UpdateMoonPosition()
 			{
 				if (Moon->CastDynamicShadows == false)
 					Moon->CastDynamicShadows = true;
-					Moon->LightingChannels.bChannel0 = true;
-					Moon->bCastCloudShadows = true;
+				Moon->LightingChannels.bChannel0 = true;
+				Moon->bCastCloudShadows = true;
 			}
 		}
 		else
