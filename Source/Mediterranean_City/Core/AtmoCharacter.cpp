@@ -16,6 +16,8 @@
 #include "Components/TimelineComponent.h"
 #include "Curves/CurveFloat.h"
 
+#include "Interaction/InteractionComponent.h"
+
 
 // Sets default values
 AAtmoCharacter::AAtmoCharacter()
@@ -28,6 +30,8 @@ AAtmoCharacter::AAtmoCharacter()
 
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(CamBoom);
+
+	IAComponent = CreateDefaultSubobject<UInteractionComponent>(TEXT("Interaction Component"));
 
 }
 
@@ -54,6 +58,8 @@ void AAtmoCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 		Input->BindAction(Actions["Run"], ETriggerEvent::Triggered, this, &AAtmoCharacter::Run);
 		Input->BindAction(Actions["Run"], ETriggerEvent::Completed, this, &AAtmoCharacter::Run);
+
+		Input->BindAction(Actions["Interact"], ETriggerEvent::Triggered, this, &AAtmoCharacter::Interact);
 	}
 	
 }
@@ -95,6 +101,11 @@ void AAtmoCharacter::Run(const FInputActionValue& Value)
 		OnRun();
 	else
 		OnStopRun();
+}
+
+void AAtmoCharacter::Interact(const FInputActionValue& Value)
+{
+	IAComponent->TryInteraction(GetMesh()->GetSocketLocation(FName("head")), GetControlRotation().Vector());
 }
 
 

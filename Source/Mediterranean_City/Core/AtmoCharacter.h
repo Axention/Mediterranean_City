@@ -14,6 +14,8 @@ class UInputAction;
 class UInputMappingContext;
 struct FInputActionValue;
 
+class UInteractionComponent;
+
 UENUM(BlueprintType)
 enum EMoveState
 {
@@ -64,6 +66,7 @@ private:
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
 	void Run(const FInputActionValue& Value);
+	void Interact(const FInputActionValue& Value);
 
 protected:
 	UPROPERTY(EditDefaultsOnly)
@@ -71,6 +74,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly)
 	USpringArmComponent* CamBoom;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UInteractionComponent* IAComponent;
 
 	UPROPERTY(EditDefaultsOnly)
 	TMap<FString, const UInputAction*> Actions;
