@@ -10,6 +10,7 @@ ADoorBase::ADoorBase()
 	PrimaryActorTick.bCanEverTick = true;
 
    DoorlockState = EDoorlock::Unlocked;
+   bInvertLockedSide = false;
 
    Root = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Root"));
    RootComponent = Root;
@@ -24,7 +25,7 @@ ADoorBase::ADoorBase()
    UnlockedSideMarker->SetupAttachment(RootComponent);
    UnlockedSideMarker->SetRelativeLocation(FVector(50, 0, 100));
    UnlockedSideMarker->SetRelativeRotation(FRotator(0, 270, 0));
-   UnlockedSideMarker->SetVisibility(false);
+   UnlockedSideMarker->SetVisibility(DoorlockState == EDoorlock::LockedOneSided);
 }
 
 void ADoorBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)

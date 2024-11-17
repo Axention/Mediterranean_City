@@ -15,6 +15,7 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogPhysicalSky, Log, All)
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTimeskipDelegate, float, newTime);
 
 USTRUCT()
 struct FDate
@@ -44,7 +45,8 @@ public:
 	float GetCurrentTime() const { return localTime; }
 
 public:
-
+	UPROPERTY(BlueprintAssignable)
+	FOnTimeskipDelegate OnTimeSkip;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
@@ -67,14 +69,19 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Time of Day")
 	float Latitude;
+
 	UPROPERTY(EditAnywhere, Category = "Time of Day")
 	float Longitude;
+
 	UPROPERTY(EditAnywhere, Category = "Time of Day")
 	FDate Date;
+
 	UPROPERTY(EditAnywhere, Category = "Time of Day", meta = (ClampMin = "0.0", ClampMax = "24.0"), BlueprintGetter = GetCurrentTime)
 	float localTime;
+
 	UPROPERTY(EditAnywhere, Category = "Time of Day", meta = (ClampMin = "-12", ClampMax = "12"))
 	int UTCTimeZone;
+
 	UPROPERTY(EditAnywhere, Category = "Time of Day", meta = (ClampMin = "-180.0", ClampMax = "180.0"))
 	float northOffset;
 

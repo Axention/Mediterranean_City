@@ -116,6 +116,8 @@ void APhysicalSky::PostEditChangeProperty(FPropertyChangedEvent& PropertyChanged
 
 	if (UpdateSky() == false)
 		UE_LOG(LogPhysicalSky, Error, TEXT("Could not update Sky"));
+
+	OnTimeSkip.Broadcast(localTime);
 }
 
 void APhysicalSky::UpdateSunPosition()
