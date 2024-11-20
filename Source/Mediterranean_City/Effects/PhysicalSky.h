@@ -44,6 +44,13 @@ public:
 	UFUNCTION(BlueprintPure)
 	float GetCurrentTime() const { return localTime; }
 
+	void ChangeTime(float Amount);
+
+	UFUNCTION()
+	void SkipTime(float Amount);
+
+	virtual void Tick(float DeltaSeconds) override;
+
 public:
 	UPROPERTY(BlueprintAssignable)
 	FOnTimeskipDelegate OnTimeSkip;
@@ -85,6 +92,10 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Time of Day", meta = (ClampMin = "-180.0", ClampMax = "180.0"))
 	float northOffset;
 
+	float TimeScaleMultiplier;
+
+	float TimeToSkipTo;
+
 
 
 	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent) override;
@@ -95,4 +106,6 @@ private:
 
 	void UpdateSunPosition();
 	void UpdateMoonPosition();
+
+	bool CheckForInvalidTimeDate(float newTime);
 };

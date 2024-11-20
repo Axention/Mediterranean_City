@@ -12,11 +12,14 @@
 
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Kismet/GameplayStatics.h"
 
 #include "Components/TimelineComponent.h"
 #include "Curves/CurveFloat.h"
 
 #include "Interaction/InteractionComponent.h"
+
+#include "../Effects/PhysicalSky.h"
 
 
 // Sets default values
@@ -68,6 +71,13 @@ void AAtmoCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 void AAtmoCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	OnTimeSkipInteraction.BindUFunction(UGameplayStatics::GetActorOfClass(GetWorld(), APhysicalSky::StaticClass()), FName("SkipTime"));
+}
+
+void AAtmoCharacter::SkipTime(float Amount)
+{
+	OnTimeSkipInteraction.Execute(Amount);
 }
 
 void AAtmoCharacter::Move(const FInputActionValue& Value)

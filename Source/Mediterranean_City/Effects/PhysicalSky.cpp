@@ -38,7 +38,7 @@ namespace aMath
 
 APhysicalSky::APhysicalSky()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 
 	Latitude = 49.45;
 	Longitude = 11.06;
@@ -47,6 +47,8 @@ APhysicalSky::APhysicalSky()
 	elevationAngle = 5.27;
 	localTime = 10.0;
 	northOffset = 0.f;
+
+	TimeScaleMultiplier = 1.0;
 
 	bLockLocation = true;
 	bListedInSceneOutliner = true;
@@ -90,23 +92,45 @@ APhysicalSky::APhysicalSky()
 
 bool APhysicalSky::UpdateSky()
 {
-	if (!FDateTime::Validate(Date.Year, Date.Month, Date.Day, 12, 0, 0, 0))
-	{
-		UE_LOG(LogPhysicalSky, Error, TEXT("Sky has invalid Date!"));
-		return false;
-	}
-
 	UpdateSunPosition();
 	UpdateMoonPosition();
-
 
 	// Update Skysphere Rotation to represent accurate nightsky at location
 	SkyMesh->SetRelativeRotation(FRotator(Latitude, 180.0 + northOffset, localTime * 15.0));
 
-	// update compass rotation to match potential new north
+	// update compass rotation to match north
 	Compass->SetRelativeRotation(FRotator(0.0, -90.0 + northOffset, 0.0));
 
 	return true;
+}
+
+void APhysicalSky::ChangeTime(float Amount)
+{
+	float _newTime = localTime + Amount;
+
+	if (CheckForInvalidTimeDate(_newTime))
+		return;
+
+	localTime = _newTime;
+
+	UpdateSky();
+	OnTimeSkip.Broadcast(localTime);
+}
+
+void APhysicalSky::SkipTime(float Amount)
+{
+	TimeToSkipTo = localTime + Amount;
+	TimeToSkipTo = TimeToSkipTo - floor(TimeToSkipTo / 24.0) * 24.0;
+	TimeScaleMultiplier = 60.0;
+}
+
+void APhysicalSky::Tick(float DeltaSeconds)
+{
+	ChangeTime(DeltaSeconds * (1.0 / 60.0) * TimeScaleMultiplier);
+	if (UKismetMathLibrary::InRange_FloatFloat(localTime, TimeToSkipTo - 0.1, TimeToSkipTo + 0.1))
+	{
+		TimeScaleMultiplier = 1.0;
+	}
 }
 
 
@@ -116,8 +140,6 @@ void APhysicalSky::PostEditChangeProperty(FPropertyChangedEvent& PropertyChanged
 
 	if (UpdateSky() == false)
 		UE_LOG(LogPhysicalSky, Error, TEXT("Could not update Sky"));
-
-	OnTimeSkip.Broadcast(localTime);
 }
 
 void APhysicalSky::UpdateSunPosition()
@@ -158,8 +180,6 @@ void APhysicalSky::UpdateSunPosition()
 		Sun->bCastCloudShadows = true;
 	}
 }
-
-
 
 void APhysicalSky::UpdateMoonPosition()
 {
@@ -284,6 +304,35 @@ void APhysicalSky::UpdateMoonPosition()
 		}
 
 	}
+}
+
+bool APhysicalSky::CheckForInvalidTimeDate(float newTime)
+{
+	if (newTime >= 24.0)
+		Date.Day += 1;
+
+	if (Date.Day > FDateTime::DaysInMonth(Date.Year, Date.Month))
+	{
+		Date.Day = 1;
+		Date.Month += 1;
+		if (Date.Month > 12)
+		{
+			Date.Month = 1;
+			Date.Year = fminf(Date.Year + 1, 9999);
+		}
+	}
+
+	newTime = (newTime - floor(newTime / 24.f) * 24.f);
+	float fminutes = fmod(newTime, 1.0) * 60.0;
+	float fseconds = fmod(fminutes, 1.0) * 60.0;
+
+	if (!FDateTime::Validate(Date.Year, Date.Month, Date.Day, floor(newTime), floor(fminutes), floor(fseconds), floor(fmod(fseconds, 1.0) * 1000.0)))
+	{
+		UE_LOG(LogPhysicalSky, Error, TEXT("New Date / Time is not valid!"));
+		return true;
+	}
+
+	return false;
 }
 
 
