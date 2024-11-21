@@ -16,7 +16,6 @@ struct FInputActionValue;
 
 class UInteractionComponent;
 
-DECLARE_DYNAMIC_DELEGATE_OneParam(FOnSkipTimeDelegate, float, Amount);
 
 UENUM(BlueprintType)
 enum EMoveState
@@ -54,8 +53,6 @@ public:
 	UFUNCTION(BlueprintPure)
 	EInteractionState GetInteractionState() const { return InteractionState; }
 
-	FOnSkipTimeDelegate OnTimeSkipInteraction;
-
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -65,9 +62,6 @@ protected:
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnStopRun();
-
-	UFUNCTION(BlueprintCallable)
-	void SkipTime(float Amount);
 
 private:
 	void Move(const FInputActionValue& Value);

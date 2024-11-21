@@ -12,6 +12,8 @@ public class Mediterranean_City : ModuleRules
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 
+		PublicIncludePaths.AddRange(new string[] {"Mediterranean_City", "Mediterranean_City/Core", "Mediterranean_City/Effects", "Mediterranean_City/Core/Interaction" });
+
 		// Uncomment if you are using Slate UI
 		// PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
 		

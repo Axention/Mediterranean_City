@@ -127,7 +127,7 @@ void APhysicalSky::SkipTime(float Amount)
 void APhysicalSky::Tick(float DeltaSeconds)
 {
 	ChangeTime(DeltaSeconds * (1.0 / 60.0) * TimeScaleMultiplier);
-	if (UKismetMathLibrary::InRange_FloatFloat(localTime, TimeToSkipTo - 0.1, TimeToSkipTo + 0.1))
+	if (UKismetMathLibrary::InRange_FloatFloat(localTime, TimeToSkipTo, MAX_dbl))
 	{
 		TimeScaleMultiplier = 1.0;
 	}
