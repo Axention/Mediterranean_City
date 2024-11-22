@@ -34,6 +34,9 @@ protected:
 	UPROPERTY()
 	TObjectPtr<USceneComponent> DefaultRoot;
 
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<USceneComponent> WarpTarget;
+
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UStaticMeshComponent> Mesh;
 

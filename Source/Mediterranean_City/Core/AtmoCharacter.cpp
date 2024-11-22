@@ -21,11 +21,10 @@
 #include "Interaction/InteractionComponent.h"
 #include "ActionAnimComponent.h"
 
+#include "MotionWarpingComponent.h"
 
-// Sets default values
 AAtmoCharacter::AAtmoCharacter()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	CamBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("Camera Boom"));
@@ -37,6 +36,8 @@ AAtmoCharacter::AAtmoCharacter()
 	IAComponent = CreateDefaultSubobject<UInteractionComponent>(TEXT("Interaction Component"));
 
 	ActionAnimComponent = CreateDefaultSubobject<UActionAnimComponent>(TEXT("Action Animation Component"));
+
+	MotionWarper = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("Motion Warping Component"));
 
 }
 
@@ -69,7 +70,14 @@ void AAtmoCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	
 }
 
-// Called when the game starts or when spawned
+void AAtmoCharacter::Tick(float DeltaSeconds)
+{
+	if (GetMesh()->GetAnimInstance()->IsAnyMontagePlaying())
+	{
+		ClampRotation();
+	}
+}
+
 void AAtmoCharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -78,6 +86,9 @@ void AAtmoCharacter::BeginPlay()
 void AAtmoCharacter::Move(const FInputActionValue& Value)
 {
 	const FVector2D inputVector = Value.Get<FVector2D>();
+
+	if (GetMesh()->GetAnimInstance()->IsAnyMontagePlaying())
+		return;
 
 	if (GetMoveState() == MS_Sitting)
 		GetActionAnimComponent()->StandUp();
@@ -93,9 +104,7 @@ void AAtmoCharacter::Look(const FInputActionValue& Value)
 	AddControllerYawInput(inputVector.X);
 	AddControllerPitchInput(inputVector.Y);
 
-	FRotator rot = GetControlRotation();
-	rot.Pitch = UKismetMathLibrary::ClampAngle(rot.Pitch, -60.0, 50.0);
-	GetController()->SetControlRotation(rot);
+	ClampRotation();
 }
 
 void AAtmoCharacter::Run(const FInputActionValue& Value)
@@ -114,6 +123,15 @@ void AAtmoCharacter::Run(const FInputActionValue& Value)
 void AAtmoCharacter::Interact(const FInputActionValue& Value)
 {
 	IAComponent->TryInteraction(GetMesh()->GetSocketLocation(FName("head")), GetControlRotation().Vector());
+}
+
+void AAtmoCharacter::ClampRotation()
+{
+	FRotator rot = GetControlRotation();
+	rot.Pitch = UKismetMathLibrary::ClampAngle(rot.Pitch, -60.0, 50.0);
+	rot.Yaw = UKismetMathLibrary::ClampAngle(rot.Yaw, GetActorForwardVector().Rotation().Yaw - 30.0, GetActorForwardVector().Rotation().Yaw + 30.0);
+	
+	GetController()->SetControlRotation(rot);
 }
 
 

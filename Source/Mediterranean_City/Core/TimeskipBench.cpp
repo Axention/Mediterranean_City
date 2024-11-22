@@ -9,6 +9,8 @@
 #include "ActionAnimComponent.h"
 #include "PhysicalSky.h"
 
+#include "MotionWarpingComponent.h"
+
 
 ATimeskipBench::ATimeskipBench()
 {
@@ -25,6 +27,9 @@ ATimeskipBench::ATimeskipBench()
 
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
 	Mesh->SetupAttachment(RootComponent);
+
+	WarpTarget = CreateDefaultSubobject<USceneComponent>(TEXT("Target"));
+	WarpTarget->SetupAttachment(RootComponent);
 
 }
 
@@ -43,6 +48,7 @@ void ATimeskipBench::Interact_Implementation(AAtmoCharacter* Character)
 		GetWorld()->GetTimerManager().SetTimer(Timer, TimeAmountToSkip + 1.f, timerParams);
 		break;
 	default:
+		Character->GetMotionWarper()->AddOrUpdateWarpTargetFromComponent(FName("SeatTarget"), WarpTarget, NAME_None, false);
 		Character->GetActionAnimComponent()->SitDown();
 		break;
 	}

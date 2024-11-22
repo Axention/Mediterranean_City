@@ -22,6 +22,9 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	UFUNCTION()
+	void OnMontageBlendOut(UAnimMontage* Montage, bool interrupted);
+
 private:
 
 public:

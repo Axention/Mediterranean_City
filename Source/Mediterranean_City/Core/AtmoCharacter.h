@@ -17,6 +17,7 @@ struct FInputActionValue;
 class UInteractionComponent;
 class UActionAnimComponent;
 
+class UMotionWarpingComponent;
 
 UENUM(BlueprintType)
 enum EMoveState
@@ -45,6 +46,8 @@ public:
 
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
+	virtual void Tick(float DeltaSeconds) override;
+
 	UFUNCTION(BlueprintPure)
 	EMoveState GetMoveState() const { return MoveState; }
 
@@ -55,6 +58,8 @@ public:
 	EInteractionState GetInteractionState() const { return InteractionState; }
 
 	UActionAnimComponent* GetActionAnimComponent() const { return ActionAnimComponent; }
+
+	UMotionWarpingComponent* GetMotionWarper() const { return MotionWarper; }
 
 protected:
 	// Called when the game starts or when spawned
@@ -71,6 +76,8 @@ private:
 	void Look(const FInputActionValue& Value);
 	void Run(const FInputActionValue& Value);
 	void Interact(const FInputActionValue& Value);
+
+	void ClampRotation();
 
 protected:
 	UPROPERTY(EditDefaultsOnly)
@@ -96,4 +103,7 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UActionAnimComponent> ActionAnimComponent;
+
+	UPROPERTY()
+	TObjectPtr<UMotionWarpingComponent> MotionWarper;
 };
