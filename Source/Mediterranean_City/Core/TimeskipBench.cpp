@@ -5,6 +5,8 @@
 
 #include "Kismet/GameplayStatics.h"
 
+#include "AtmoCharacter.h"
+#include "ActionAnimComponent.h"
 #include "PhysicalSky.h"
 
 
@@ -26,16 +28,24 @@ ATimeskipBench::ATimeskipBench()
 
 }
 
-void ATimeskipBench::Interact_Implementation()
+void ATimeskipBench::Interact_Implementation(AAtmoCharacter* Character)
 {
-	if (!GetWorld()->GetTimerManager().TimerExists(Timer))
+	FTimerManagerTimerParameters timerParams = { .bLoop = false, .bMaxOncePerFrame = false, .FirstDelay = -1.f };
+
+	switch (Character->GetMoveState())
 	{
+	case MS_Sitting:
+		if (GetWorld()->GetTimerManager().TimerExists(Timer))
+			return;
+
 		OnTimeSkipInteraction.ExecuteIfBound(TimeAmountToSkip);
 
-		FTimerManagerTimerParameters timerParams = { .bLoop = false, .bMaxOncePerFrame = false, .FirstDelay = -1.f };
-
 		GetWorld()->GetTimerManager().SetTimer(Timer, TimeAmountToSkip + 1.f, timerParams);
-	}	
+		break;
+	default:
+		Character->GetActionAnimComponent()->SitDown();
+		break;
+	}
 }
 
 void ATimeskipBench::BeginPlay()

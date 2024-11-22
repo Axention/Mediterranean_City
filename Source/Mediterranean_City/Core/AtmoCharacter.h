@@ -15,6 +15,7 @@ class UInputMappingContext;
 struct FInputActionValue;
 
 class UInteractionComponent;
+class UActionAnimComponent;
 
 
 UENUM(BlueprintType)
@@ -53,6 +54,8 @@ public:
 	UFUNCTION(BlueprintPure)
 	EInteractionState GetInteractionState() const { return InteractionState; }
 
+	UActionAnimComponent* GetActionAnimComponent() const { return ActionAnimComponent; }
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -90,4 +93,7 @@ protected:
 
 	UPROPERTY(BlueprintGetter = GetInteractionState)
 	TEnumAsByte<EInteractionState> InteractionState;
+
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<UActionAnimComponent> ActionAnimComponent;
 };

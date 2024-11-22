@@ -5,6 +5,7 @@
 
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
@@ -18,6 +19,7 @@
 #include "Curves/CurveFloat.h"
 
 #include "Interaction/InteractionComponent.h"
+#include "ActionAnimComponent.h"
 
 
 // Sets default values
@@ -33,6 +35,8 @@ AAtmoCharacter::AAtmoCharacter()
 	Camera->SetupAttachment(CamBoom);
 
 	IAComponent = CreateDefaultSubobject<UInteractionComponent>(TEXT("Interaction Component"));
+
+	ActionAnimComponent = CreateDefaultSubobject<UActionAnimComponent>(TEXT("Action Animation Component"));
 
 }
 
@@ -74,6 +78,9 @@ void AAtmoCharacter::BeginPlay()
 void AAtmoCharacter::Move(const FInputActionValue& Value)
 {
 	const FVector2D inputVector = Value.Get<FVector2D>();
+
+	if (GetMoveState() == MS_Sitting)
+		GetActionAnimComponent()->StandUp();
 
 	AddMovementInput(GetActorForwardVector(), inputVector.X);
 	AddMovementInput(UKismetMathLibrary::GetRightVector(GetControlRotation()), inputVector.Y);

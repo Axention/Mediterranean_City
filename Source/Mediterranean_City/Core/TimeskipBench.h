@@ -20,7 +20,7 @@ class ATimeskipBench : public AActor, public IInteractionInterface
 public:	
 	ATimeskipBench();
 
-	virtual void Interact_Implementation() override;
+	virtual void Interact_Implementation(AAtmoCharacter* Character) override;
 
 protected:
 	virtual void BeginPlay() override;

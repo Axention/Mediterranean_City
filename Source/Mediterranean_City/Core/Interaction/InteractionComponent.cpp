@@ -5,6 +5,8 @@
 
 #include "InteractionInterface.h"
 
+#include "AtmoCharacter.h"
+
 #include "Kismet/KismetSystemLibrary.h"
 
 // Sets default values for this component's properties
@@ -26,7 +28,7 @@ void UInteractionComponent::TryInteraction(FVector CameraPosition, FVector Camer
 	{
 		if (hit.GetActor()->Implements<UInteractionInterface>())
 		{
-			IInteractionInterface::Execute_Interact(hit.GetActor());
+			IInteractionInterface::Execute_Interact(hit.GetActor(), Cast<AAtmoCharacter>(GetOwner()));
 		}
 	}
 }
