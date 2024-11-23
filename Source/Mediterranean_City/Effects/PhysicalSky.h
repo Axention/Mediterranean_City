@@ -28,7 +28,15 @@ struct FDate
 	int Month{ 1 };
 	UPROPERTY(EditAnywhere, meta = (ClampMin = "1", ClampMax = "31"))
 	int Day{ 1 };
+
+	bool operator==(const FDate& Other) const
+	{
+		return (Day == Other.Day) && (Month == Other.Month) && (Year == Other.Year);
+	}
+
 };
+
+
 
 
 UCLASS(Blueprintable)
@@ -103,6 +111,8 @@ protected:
 private:
 	float elevationAngle;
 	float azimuthAngle;
+
+	FDate SkipToDate;
 
 	void UpdateSunPosition();
 	void UpdateMoonPosition();

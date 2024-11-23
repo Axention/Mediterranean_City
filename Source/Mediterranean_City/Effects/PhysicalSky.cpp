@@ -31,6 +31,11 @@ namespace aMath
 	{
 		return tan(DOUBLE_PI / (180.0) * x);
 	}
+
+	static double OverflowToZeroAtX(double Value, double ExclusiveMax)
+	{
+		return Value - floor(Value / ExclusiveMax) * ExclusiveMax;
+	}
 }
 
 
@@ -111,7 +116,7 @@ void APhysicalSky::ChangeTime(float Amount)
 	if (CheckForInvalidTimeDate(_newTime))
 		return;
 
-	localTime = _newTime;
+	localTime = aMath::OverflowToZeroAtX(_newTime, 24.0);
 
 	UpdateSky();
 	OnTimeSkip.Broadcast(localTime);
@@ -119,18 +124,37 @@ void APhysicalSky::ChangeTime(float Amount)
 
 void APhysicalSky::SkipTime(float Amount)
 {
+
+	SkipToDate = Date;
+
 	TimeToSkipTo = localTime + Amount;
-	TimeToSkipTo = TimeToSkipTo - floor(TimeToSkipTo / 24.0) * 24.0;
+
+	if (TimeToSkipTo >= 24.0)
+		SkipToDate.Day += 1;
+
+	if (SkipToDate.Day > FDateTime::DaysInMonth(SkipToDate.Year, SkipToDate.Month))
+	{
+		SkipToDate.Day = 1;
+		SkipToDate.Month += 1;
+		if (SkipToDate.Month > 12)
+		{
+			SkipToDate.Month = 1;
+			SkipToDate.Year = fminf(SkipToDate.Year + 1, 9999);
+		}
+	}
+
+	TimeToSkipTo = aMath::OverflowToZeroAtX(TimeToSkipTo, 24.0);
 	TimeScaleMultiplier = 60.0;
 }
 
 void APhysicalSky::Tick(float DeltaSeconds)
 {
-	ChangeTime(DeltaSeconds * (1.0 / 60.0) * TimeScaleMultiplier);
-	if (UKismetMathLibrary::InRange_FloatFloat(localTime, TimeToSkipTo, MAX_dbl))
+	if (UKismetMathLibrary::InRange_FloatFloat(localTime, TimeToSkipTo, MAX_dbl) && (SkipToDate == Date))
 	{
 		TimeScaleMultiplier = 1.0;
 	}
+
+	ChangeTime(DeltaSeconds * (1.0 / 60.0) * TimeScaleMultiplier);
 }
 
 

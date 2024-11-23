@@ -4,6 +4,7 @@
 #include "TimeskipBench.h"
 
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 
 #include "AtmoCharacter.h"
 #include "ActionAnimComponent.h"
@@ -48,6 +49,8 @@ void ATimeskipBench::Interact_Implementation(AAtmoCharacter* Character)
 		GetWorld()->GetTimerManager().SetTimer(Timer, TimeAmountToSkip + 1.f, timerParams);
 		break;
 	default:
+		if (UKismetMathLibrary::Dot_VectorVector(Character->GetActorForwardVector(), GetActorForwardVector()) > -0.25)
+			return;
 		Character->GetMotionWarper()->AddOrUpdateWarpTargetFromComponent(FName("SeatTarget"), WarpTarget, NAME_None, false);
 		Character->GetActionAnimComponent()->SitDown();
 		break;

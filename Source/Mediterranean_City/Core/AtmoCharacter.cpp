@@ -129,7 +129,7 @@ void AAtmoCharacter::ClampRotation()
 {
 	FRotator rot = GetControlRotation();
 	rot.Pitch = UKismetMathLibrary::ClampAngle(rot.Pitch, -60.0, 50.0);
-	rot.Yaw = UKismetMathLibrary::ClampAngle(rot.Yaw, GetActorForwardVector().Rotation().Yaw - 30.0, GetActorForwardVector().Rotation().Yaw + 30.0);
+	rot.Yaw = UKismetMathLibrary::ClampAngle(rot.Yaw, GetActorForwardVector().Rotation().Yaw - 50.0, GetActorForwardVector().Rotation().Yaw + 50.0);
 	
 	GetController()->SetControlRotation(rot);
 }

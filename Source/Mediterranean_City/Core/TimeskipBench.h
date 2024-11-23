@@ -34,7 +34,7 @@ protected:
 	UPROPERTY()
 	TObjectPtr<USceneComponent> DefaultRoot;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<USceneComponent> WarpTarget;
 
 	UPROPERTY(EditDefaultsOnly)
