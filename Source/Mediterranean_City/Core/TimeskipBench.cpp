@@ -6,6 +6,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 
+#include "Utility/CaelumUtilities.h"
+
 #include "AtmoCharacter.h"
 #include "ActionAnimComponent.h"
 #include "PhysicalSky.h"
@@ -61,7 +63,8 @@ void ATimeskipBench::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	OnTimeSkipInteraction.BindUFunction(UGameplayStatics::GetActorOfClass(GetWorld(), APhysicalSky::StaticClass()), FName("SkipTime"));
+//	OnTimeSkipInteraction.BindUFunction(UGameplayStatics::GetActorOfClass(GetWorld(), APhysicalSky::StaticClass()), FName("SkipTime"));
+	OnTimeSkipInteraction.BindUFunction(UCaelumUtilities::GetTimeOfDaySystem(GetWorld()), FName("SkipTime"));
 }
 
 

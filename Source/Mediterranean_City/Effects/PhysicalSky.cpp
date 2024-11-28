@@ -1,6 +1,9 @@
 #include "PhysicalSky.h"
 
+#include "CaelumGamemode.h"
+
 #include "Kismet/KismetMathLibrary.h"
+#include "Kismet/GameplayStatics.h"
 
 
 DEFINE_LOG_CATEGORY(LogPhysicalSky)
@@ -155,6 +158,13 @@ void APhysicalSky::Tick(float DeltaSeconds)
 	}
 
 	ChangeTime(DeltaSeconds * (1.0 / 60.0) * TimeScaleMultiplier);
+}
+
+void APhysicalSky::BeginPlay()
+{
+	Super::BeginPlay();
+
+   Cast<ACaelumGamemode>(UGameplayStatics::GetGameMode(GetWorld()))->SetToDSystem(this);
 }
 
 
