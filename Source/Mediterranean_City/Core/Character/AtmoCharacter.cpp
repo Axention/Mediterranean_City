@@ -76,6 +76,11 @@ void AAtmoCharacter::Tick(float DeltaSeconds)
 	{
 		ClampRotation();
 	}
+
+	if (GetMoveState() != MS_Sitting)
+		IAComponent->SeekInteractible(Camera->GetComponentLocation(), Camera->GetForwardVector());
+	else
+		IAComponent->ResetSeeking();
 }
 
 void AAtmoCharacter::BeginPlay()

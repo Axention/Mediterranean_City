@@ -43,4 +43,9 @@ void ACollectable::Interact_Implementation(AAtmoCharacter* Character)
 	InteractionField->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
+void ACollectable::SetHighlight_Implementation(bool newState)
+{
+	Mesh->SetRenderCustomDepth(newState);
+}
+
 

@@ -22,6 +22,8 @@ public:
 
 	virtual void Interact_Implementation(AAtmoCharacter* Character) override;
 
+	virtual void SetHighlight_Implementation(bool newState) override;
+
 protected:
 	virtual void BeginPlay() override;
 

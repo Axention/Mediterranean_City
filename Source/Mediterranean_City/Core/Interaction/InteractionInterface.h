@@ -25,4 +25,7 @@ class MEDITERRANEAN_CITY_API IInteractionInterface
 public:
 	UFUNCTION(BlueprintNativeEvent)
 	void Interact(AAtmoCharacter* Character);
+
+	UFUNCTION(BlueprintNativeEvent)
+	void SetHighlight(bool newState);
 };

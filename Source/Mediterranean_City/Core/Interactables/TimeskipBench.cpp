@@ -59,6 +59,11 @@ void ATimeskipBench::Interact_Implementation(AAtmoCharacter* Character)
 	}
 }
 
+void ATimeskipBench::SetHighlight_Implementation(bool newState)
+{
+	Mesh->SetRenderCustomDepth(newState);
+}
+
 void ATimeskipBench::BeginPlay()
 {
 	Super::BeginPlay();

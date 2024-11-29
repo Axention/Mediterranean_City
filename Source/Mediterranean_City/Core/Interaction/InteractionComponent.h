@@ -19,10 +19,19 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void TryInteraction(FVector CameraPosition, FVector CameraForward);
 
+	void SeekInteractible(FVector CamPos, FVector CamFwd);
+
+	void ResetSeeking();
+
 protected:
 	UPROPERTY(EditDefaultsOnly)
 	float MaxInteractionDistance;
 
 	UPROPERTY(EditAnywhere)
 	TArray<TEnumAsByte<EObjectTypeQuery>> SearchObjectTypes;
+
+private:
+	TObjectPtr<AActor> lastHitActor;
+
+	bool bFoundInteractable{ false };
 };
