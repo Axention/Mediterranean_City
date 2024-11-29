@@ -5,15 +5,16 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 
-#include "Components/PostProcessComponent.h"
-#include "Components/DirectionalLightComponent.h"
-#include "Components/SkyLightComponent.h"
-#include "Components/SkyAtmosphereComponent.h"
-#include "Components/ExponentialHeightFogComponent.h"
-
 #include "PhysicalSky.generated.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogPhysicalSky, Log, All)
+
+
+class UPostProcessComponent;
+class USkylightComponent;
+class UDirectionalLightComponent;
+class UExponentialHeightFogComponent;
+
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTimeskipDelegate, float, newTime);
 

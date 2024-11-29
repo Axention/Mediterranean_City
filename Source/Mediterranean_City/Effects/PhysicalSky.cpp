@@ -1,6 +1,12 @@
 #include "PhysicalSky.h"
 
-#include "CaelumGamemode.h"
+#include "Core/CaelumGamemode.h"
+
+#include "Components/PostProcessComponent.h"
+#include "Components/DirectionalLightComponent.h"
+#include "Components/SkyLightComponent.h"
+#include "Components/SkyAtmosphereComponent.h"
+#include "Components/ExponentialHeightFogComponent.h"
 
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/GameplayStatics.h"

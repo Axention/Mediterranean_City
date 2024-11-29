@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 
-#include "Effects/PhysicalSky.h"
+#include "PhysicalSky.h"
 
 #include "CaelumUtilities.generated.h"
 
