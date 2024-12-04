@@ -10,9 +10,9 @@ public class Mediterranean_City : ModuleRules
 	
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "MotionWarping" });
 
-		PrivateDependencyModuleNames.AddRange(new string[] {  });
+        PrivateIncludePaths.AddRange(new string[] { "Mediterranean_City"});
 
-        PrivateIncludePaths.AddRange(new string[] { "Mediterranean_City", "Mediterranean_City/Core", "Mediterranean_City/Core/Character", "Mediterranean_City/Core/Interactables", "Mediterranean_City/Core/Interaction", "Mediterranean_City/Effects", "Mediterranean_City/Utility" });
+		bAddDefaultIncludePaths = true;	
 		
 
 		// Uncomment if you are using Slate UI
