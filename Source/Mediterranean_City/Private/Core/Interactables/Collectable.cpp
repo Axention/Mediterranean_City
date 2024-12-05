@@ -42,6 +42,8 @@ void ACollectable::Interact_Implementation(AAtmoCharacter* Character)
 	Mesh->SetWorldLocationAndRotation(newLoc, newRot.Quaternion());
 
 	InteractionField->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	OnInteractionDelegate.ExecuteIfBound();
 }
 
 void ACollectable::SetHighlight_Implementation(bool newState)

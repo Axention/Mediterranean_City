@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 
-#include "Core/Interaction/InteractionInterface.h"
+#include "Core/Interaction/InteractableBase.h"
 
 #include "Collectable.generated.h"
 
@@ -16,7 +16,7 @@ class UBoxComponent;
 class ADisplayStand;
 
 UCLASS()
-class ACollectable : public AActor, public IInteractionInterface
+class ACollectable : public AInteractable
 {
 	GENERATED_BODY()
 	

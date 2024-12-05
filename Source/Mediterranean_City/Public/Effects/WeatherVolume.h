@@ -10,11 +10,14 @@
 #include "WeatherVolume.generated.h"
 
 class USphereComponent;
+class ATimeskipBench;
+class AInteractable;
 
 UENUM()
 enum class EChangeCondition : uint8
 {
 	SpecifiedTimeframe,
+	InteractionTriggered,
 	ContactOnly
 };
 
@@ -29,8 +32,14 @@ public:
 	UFUNCTION()
 	void OnEnterField(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyindex, bool bFromSweep, const FHitResult& SweepResult);
 
+	UFUNCTION()
+	void OnExitField(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyindex);
+
 protected:
 	virtual void BeginPlay() override;
+
+	UFUNCTION()
+	void OnInteract();
 
 protected:
 	UPROPERTY(EditInstanceOnly)
@@ -42,7 +51,12 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<USphereComponent> TriggerField;
 
-	UPROPERTY(EditInstanceOnly, meta = (EditCondition = "ChangeCondition == EChangeCondition::SpecifiedTimeframe", EditConditionHides, Tooltip="Define the timeframe during which a weather change can be triggered by this volume. Keep between 0 - 24. Inclusive/Exclusive should not be changed!"))
+	UPROPERTY(EditInstanceOnly, meta = (EditCondition = "ChangeCondition == EChangeCondition::SpecifiedTimeframe", EditConditionHides))
 	FFloatRange Timeframe;
+
+	UPROPERTY(EditInstanceOnly, meta = (EditCondition = "ChangeCondition == EChangeCondition::InteractionTriggered", EditConditionHides, MustImplement = "InteractionInterface"))
+	TObjectPtr<AInteractable> InteractionTarget;
+
+	
 
 };

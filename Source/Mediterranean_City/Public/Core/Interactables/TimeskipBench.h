@@ -6,14 +6,14 @@
 #include "GameFramework/Actor.h"
 #include "Components/BoxComponent.h"
 
-#include "Core/Interaction/InteractionInterface.h"
+#include "Core/Interaction/InteractableBase.h"
 
 #include "TimeskipBench.generated.h"
 
 DECLARE_DYNAMIC_DELEGATE_OneParam(FOnSkipTimeDelegate, float, Amount);
 
 UCLASS()
-class ATimeskipBench : public AActor, public IInteractionInterface
+class ATimeskipBench : public AInteractable
 {
 	GENERATED_BODY()
 	

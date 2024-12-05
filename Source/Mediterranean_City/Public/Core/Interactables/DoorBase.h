@@ -7,7 +7,7 @@
 #include "Components/BoxComponent.h"
 #include "Components/ArrowComponent.h"
 
-#include "Core/Interaction/InteractionInterface.h"
+#include "Core/Interaction/InteractableBase.h"
 
 #include "DoorBase.generated.h"
 

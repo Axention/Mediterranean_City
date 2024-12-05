@@ -54,6 +54,7 @@ void ATimeskipBench::Interact_Implementation(AAtmoCharacter* Character)
 			return;
 		Character->GetMotionWarper()->AddOrUpdateWarpTargetFromComponent(FName("SeatTarget"), WarpTarget, NAME_None, false);
 		Character->GetActionAnimComponent()->SitDown();
+		OnInteractionDelegate.ExecuteIfBound();
 		break;
 	}
 }

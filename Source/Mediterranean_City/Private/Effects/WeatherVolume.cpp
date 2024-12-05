@@ -3,8 +3,11 @@
 
 #include "Effects/WeatherVolume.h"
 
+#include "Core/Interaction/InteractableBase.h"
+
 #include "Utility/CaelumUtilities.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 #include "Components/SphereComponent.h"
 
@@ -26,29 +29,58 @@ void AWeatherVolume::OnEnterField(UPrimitiveComponent* OverlappedComp, AActor* O
 	if (!OtherActor->ActorHasTag("Player"))
 		return;
 
+	// TODO: check for weather cooldown
 
 	switch (ChangeCondition)
 	{
-		float currentTime;
+
 		case EChangeCondition::SpecifiedTimeframe:
+		{
 			if (!(Timeframe.HasLowerBound() && Timeframe.HasUpperBound()))
+			{
+				UE_LOG(LogTemp, Error, TEXT("Timeframe has no Bounds! (Upper or Lower)"));
+				return;
+			}
+
+			if (!UKismetMathLibrary::InRange_FloatFloat(UCaelumUtilities::GetTimeOfDaySystem(this)->GetCurrentTime(), Timeframe.GetLowerBoundValue(), Timeframe.GetUpperBoundValue(), true, false))
 				return;
 
-			currentTime = UCaelumUtilities::GetTimeOfDaySystem(this)->GetCurrentTime();
-			if (!UKismetMathLibrary::InRange_FloatFloat(currentTime, Timeframe.GetLowerBoundValue(), Timeframe.GetUpperBoundValue(), true, false))
-				return;
+			// UCaelumUtilities::GetTimeOfDaySystem(this)->GetWeatherSystem()->TryWeatherChange(WeatherToChangeTo); 
+			// TODO: Implement base Weather System for communication
+
+			GEngine->AddOnScreenDebugMessage(256, 3.f, FColor::Green, "Weather changed via Timeframe!");
+			return;
+
 			break;
-		case EChangeCondition::ContactOnly:
+		}
+		case EChangeCondition::InteractionTriggered:
+		{
+			InteractionTarget->OnInteractionDelegate.BindUFunction(this, FName("OnInteract"));
+			return;
 			break;
+		}
 		default:
+			GEngine->AddOnScreenDebugMessage(256, 3.f, FColor::Green, "Weather changed via default!");
 			break;
 	}
+}
 
-	FString message = "Weather changed!";
-	GEngine->AddOnScreenDebugMessage(256, 3.f, FColor::Green, message);
+void AWeatherVolume::OnExitField(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyindex)
+{
+	if (!OtherActor->ActorHasTag("Player"))
+		return;
+
+	InteractionTarget->OnInteractionDelegate.Unbind();
 }
 
 void AWeatherVolume::BeginPlay()
 {
 	TriggerField->OnComponentBeginOverlap.AddDynamic(this, &AWeatherVolume::OnEnterField);
+	TriggerField->OnComponentEndOverlap.AddDynamic(this, &AWeatherVolume::OnExitField);
+}
+
+void AWeatherVolume::OnInteract()
+{
+	GEngine->AddOnScreenDebugMessage(256, 3.f, FColor::Green, "Weather changed via Interaction!");
+	InteractionTarget->OnInteractionDelegate.Unbind();
 }
