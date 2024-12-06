@@ -19,7 +19,9 @@ UInteractionComponent::UInteractionComponent()
 
 void UInteractionComponent::TryInteraction(FVector CameraPosition, FVector CameraForward)
 {
-	if (!bFoundInteractable)
+	AAtmoCharacter* character = Cast<AAtmoCharacter>(GetOwner());
+
+	if ((character->GetMoveState() != EMoveState::MS_Sitting) && (!bFoundInteractable))
 		return;
 
 	FHitResult hit;
@@ -29,7 +31,7 @@ void UInteractionComponent::TryInteraction(FVector CameraPosition, FVector Camer
 	{
 		if (hit.GetActor()->Implements<UInteractionInterface>())
 		{
-			IInteractionInterface::Execute_Interact(hit.GetActor(), Cast<AAtmoCharacter>(GetOwner()));
+			IInteractionInterface::Execute_Interact(hit.GetActor(), character);
 		}
 	}
 }
