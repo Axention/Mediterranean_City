@@ -100,8 +100,11 @@ APhysicalSky::APhysicalSky()
 	SkyMesh->SetRelativeScale3D(FVector(100000.0));
 
 	Compass = CreateEditorOnlyDefaultSubobject<UStaticMeshComponent>(TEXT("Editor Compass"));
-	Compass->SetupAttachment(PostProcess);
-	Compass->SetRelativeLocationAndRotation(FVector(0, 0, 1500), FRotator(0.0, -90.0 + northOffset, 0.0));
+	if (Compass)
+	{
+		Compass->SetupAttachment(PostProcess);
+		Compass->SetRelativeLocationAndRotation(FVector(0, 0, 1500), FRotator(0.0, -90.0 + northOffset, 0.0));
+	}
 }
 
 bool APhysicalSky::UpdateSky()
@@ -113,7 +116,8 @@ bool APhysicalSky::UpdateSky()
 	SkyMesh->SetRelativeRotation(FRotator(Latitude, 180.0 + northOffset, localTime * 15.0));
 
 	// update compass rotation to match north
-	Compass->SetRelativeRotation(FRotator(0.0, -90.0 + northOffset, 0.0));
+	if (Compass)
+		Compass->SetRelativeRotation(FRotator(0.0, -90.0 + northOffset, 0.0));
 
 	return true;
 }
@@ -342,7 +346,8 @@ void APhysicalSky::UpdateMoonPosition()
 			Moon->LightingChannels.bChannel0 = false;
 			Moon->bCastCloudShadows = false;
 		}
-
+		//Sun->MarkRenderStateDirty();
+		//Moon->MarkRenderStateDirty();
 	}
 }
 

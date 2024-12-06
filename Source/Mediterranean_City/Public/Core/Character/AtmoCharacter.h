@@ -20,7 +20,7 @@ class UActionAnimComponent;
 class UMotionWarpingComponent;
 
 UENUM(BlueprintType)
-enum EMoveState
+enum class EMoveState : uint8
 {
 	MS_Idle,
 	MS_Walking,
@@ -28,7 +28,7 @@ enum EMoveState
 }; 
 
 UENUM(BlueprintType)
-enum EInteractionState
+enum class EInteractionState : uint8
 {
 	IA_Idle,
 	IA_Busy
@@ -96,10 +96,10 @@ protected:
 	UInputMappingContext* AtmoBaseMappingContext;
 
 	UPROPERTY(BlueprintGetter = GetMoveState, BlueprintSetter = SetMoveState)
-	TEnumAsByte<EMoveState> MoveState;
+	EMoveState MoveState;
 
 	UPROPERTY(BlueprintGetter = GetInteractionState)
-	TEnumAsByte<EInteractionState> InteractionState;
+	EInteractionState InteractionState;
 
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UActionAnimComponent> ActionAnimComponent;

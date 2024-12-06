@@ -41,7 +41,7 @@ void ATimeskipBench::Interact_Implementation(AAtmoCharacter* Character)
 
 	switch (Character->GetMoveState())
 	{
-	case MS_Sitting:
+	case EMoveState::MS_Sitting:
 		if (GetWorld()->GetTimerManager().TimerExists(Timer))
 			return;
 
@@ -68,7 +68,6 @@ void ATimeskipBench::BeginPlay()
 {
 	Super::BeginPlay();
 	
-//	OnTimeSkipInteraction.BindUFunction(UGameplayStatics::GetActorOfClass(GetWorld(), APhysicalSky::StaticClass()), FName("SkipTime"));
 	OnTimeSkipInteraction.BindUFunction(UCaelumUtilities::GetTimeOfDaySystem(GetWorld()), FName("SkipTime"));
 }
 

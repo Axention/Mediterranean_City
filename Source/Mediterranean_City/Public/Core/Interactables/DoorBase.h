@@ -12,12 +12,13 @@
 #include "DoorBase.generated.h"
 
 UENUM(BlueprintType)
-enum EDoorlock
+enum class EDoorlock : uint8
 {
 	Unlocked,
-	TimeLocked,
-	LockedOneSided,
-	KeyLocked
+	TimeLocked UMETA(ToolTip = "Will automatically open during given timeframe."),
+	LockedOneSided UMETA(DisplayName = "one-sided Lock"),
+	TimelockedHidden UMETA(DisplayName = "Secret/Hidden & Timelocked"),
+	KeyLocked UMETA(Hidden)
 };
 
 
@@ -42,14 +43,13 @@ protected:
 	UBoxComponent* TraceFallback;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TEnumAsByte<EDoorlock> DoorlockState;
+	EDoorlock DoorlockState;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (EditCondition = "DoorlockState == EDoorlock::LockedOneSided", EditConditionHides))
 	bool bInvertLockedSide;
 
+#if WITH_EDITOR
 	UArrowComponent* UnlockedSideMarker;
-
-
-
+#endif // WITH_EDITOR
 
 };

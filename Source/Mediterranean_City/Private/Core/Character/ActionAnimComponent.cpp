@@ -19,7 +19,7 @@ UActionAnimComponent::UActionAnimComponent()
 
 void UActionAnimComponent::SitDown()
 {
-	Player->SetMoveState(MS_Sitting);
+	Player->SetMoveState(EMoveState::MS_Sitting);
 
 	Player->bUseControllerRotationYaw = false;
 	Player->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECollisionResponse::ECR_Ignore);
@@ -41,7 +41,7 @@ void UActionAnimComponent::BeginPlay()
 
 void UActionAnimComponent::OnMontageBlendOut(UAnimMontage* Montage, bool interrupted)
 {
-	Player->SetMoveState(MS_Idle);
+	Player->SetMoveState(EMoveState::MS_Idle);
 
 	Player->bUseControllerRotationYaw = true;
 	Player->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECollisionResponse::ECR_Block);

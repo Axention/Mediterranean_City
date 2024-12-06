@@ -77,7 +77,7 @@ void AAtmoCharacter::Tick(float DeltaSeconds)
 		ClampRotation();
 	}
 
-	if (GetMoveState() != MS_Sitting)
+	if (GetMoveState() != EMoveState::MS_Sitting)
 		IAComponent->SeekInteractible(Camera->GetComponentLocation(), Camera->GetForwardVector());
 	else
 		IAComponent->ResetSeeking();
@@ -95,7 +95,7 @@ void AAtmoCharacter::Move(const FInputActionValue& Value)
 	if (GetMesh()->GetAnimInstance()->IsAnyMontagePlaying())
 		return;
 
-	if (GetMoveState() == MS_Sitting)
+	if (GetMoveState() == EMoveState::MS_Sitting)
 		GetActionAnimComponent()->StandUp();
 
 	AddMovementInput(GetActorForwardVector(), inputVector.X);

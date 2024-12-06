@@ -21,17 +21,23 @@ ADoorBase::ADoorBase()
    TraceFallback = CreateDefaultSubobject<UBoxComponent>(TEXT("Trace Fallback"));
    TraceFallback->SetupAttachment(RootComponent);
 
+#if WITH_EDITOR
    UnlockedSideMarker = CreateEditorOnlyDefaultSubobject<UArrowComponent>(TEXT("Arrow"));
-   UnlockedSideMarker->SetupAttachment(RootComponent);
-   UnlockedSideMarker->SetRelativeLocation(FVector(50, 0, 100));
-   UnlockedSideMarker->SetRelativeRotation(FRotator(0, 270, 0));
-   UnlockedSideMarker->SetVisibility(DoorlockState == EDoorlock::LockedOneSided);
+   if (UnlockedSideMarker)
+   {
+      UnlockedSideMarker->SetupAttachment(RootComponent);
+      UnlockedSideMarker->SetRelativeLocation(FVector(50, 0, 100));
+      UnlockedSideMarker->SetRelativeRotation(FRotator(0, 270, 0));
+      UnlockedSideMarker->SetVisibility(DoorlockState == EDoorlock::LockedOneSided);
+   }
+#endif // WITH_EDITOR
 }
 
 void ADoorBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
    Super::PostEditChangeProperty(PropertyChangedEvent);
 
+#if WITH_EDITOR
    if (DoorlockState == EDoorlock::LockedOneSided)
    {
       UnlockedSideMarker->SetVisibility(true);
@@ -41,5 +47,6 @@ void ADoorBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEve
    {
       UnlockedSideMarker->SetVisibility(false);
    }
+#endif // WITH_EDITOR
 }
 
