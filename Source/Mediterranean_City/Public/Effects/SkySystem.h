@@ -70,6 +70,9 @@ class ASkySystem : public AActor
 public:	
 	ASkySystem();
 
+	UFUNCTION()
+	void SkipTime(float newTime);
+
 protected:
 	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent) override;
 
@@ -80,6 +83,9 @@ protected:
 	void UpdateLighting();
 
 	void ChangeTime(float Amount);
+
+private:
+	void UpdateSimulationTimeDate(float newTime);
 
 
 public:
@@ -99,6 +105,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Lighting", AdvancedDisplay)
 	TObjectPtr<UCurveFloat> SunIntensityFalloff;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Lighting")
+	float FastForwardTimeMultiplier;
+
+	// ----- Components Begin
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UPostProcessComponent> PostProcess;
 
@@ -122,11 +132,13 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UStaticMeshComponent> SkySphere;
+	// ----- Components End
 
-
-	FAzimuthialCoords SunCoords;
-	FAzimuthialCoords MoonCoords;
 
 private:
-	void UpdateSimulationTimeDate(float newTime);
+	float TimeskipRemaining;
+
+	FAzimuthialCoords SunCoords;
+
+	FAzimuthialCoords MoonCoords;
 };

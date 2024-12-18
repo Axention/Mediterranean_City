@@ -25,6 +25,8 @@ ASkySystem::ASkySystem()
 	MoonCoords = FAzimuthialCoords();
 
 	SunLux = 120000.f;
+	FastForwardTimeMultiplier = 3.f;
+	TimeskipRemaining = -1.f;
 
 	PostProcess = CreateDefaultSubobject<UPostProcessComponent>(TEXT("Global PostProcess"));
 	RootComponent = PostProcess;
@@ -54,6 +56,11 @@ ASkySystem::ASkySystem()
 	SkySphere = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("SkySphere"));
 	SkySphere->SetupAttachment(RootComponent);
 
+}
+
+void ASkySystem::SkipTime(float newTime)
+{
+	TimeskipRemaining = (newTime <= SimData.LocalTime) ? (24.f - (SimData.LocalTime - newTime)) : (newTime - SimData.LocalTime);
 }
 
 void ASkySystem::CalculatePlanetaryPositions()
@@ -254,7 +261,12 @@ void ASkySystem::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
-	ChangeTime(DeltaSeconds * SimulationSpeed * (24.0 / 86400.0));
+	float TimeDelta = DeltaSeconds * SimulationSpeed * (24.0 / 86400.0);
+
+	if (TimeskipRemaining > -1.f)
+		TimeskipRemaining = TimeskipRemaining - TimeDelta * FastForwardTimeMultiplier;
+
+	ChangeTime(TimeDelta * (TimeskipRemaining <= 0.f ? 1.f : FastForwardTimeMultiplier));
 }
 
 
