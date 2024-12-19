@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 
-#include "Effects/PhysicalSky.h"
+#include "Effects/SkySystem.h"
 
 #include "CaelumUtilities.generated.h"
 
@@ -19,5 +19,5 @@ class MEDITERRANEAN_CITY_API UCaelumUtilities : public UBlueprintFunctionLibrary
 
 public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, meta = (WorldContext = "WorldContextObject"))
-	static APhysicalSky* GetTimeOfDaySystem(UObject* WorldContextObject);
+	static ASkySystem* GetTimeOfDaySystem(UObject* WorldContextObject);
 };

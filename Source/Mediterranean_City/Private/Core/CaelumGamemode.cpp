@@ -3,7 +3,13 @@
 
 #include "Core/CaelumGamemode.h"
 
-void ACaelumGamemode::SetToDSystem(APhysicalSky* ToD)
+#include "Effects/SkySystem.h"
+
+#include "Kismet/GameplayStatics.h"
+
+void ACaelumGamemode::StartPlay()
 {
-   ToDSystem = ToD;
+   ToDSystem = Cast<ASkySystem>(UGameplayStatics::GetActorOfClass(this, ASkySystem::StaticClass()));
+
+   Super::StartPlay();
 }

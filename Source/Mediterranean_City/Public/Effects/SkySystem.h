@@ -9,6 +9,8 @@
 
 #include "SkySystem.generated.h"
 
+DECLARE_LOG_CATEGORY_EXTERN(LogSkySystem, Log, All);
+
 class UPostProcessComponent;
 class USkyLightComponent;
 class USkyAtmosphereComponent;
@@ -72,6 +74,9 @@ public:
 
 	UFUNCTION()
 	void SkipTime(float newTime);
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	float GetCurrentTime() const { return SimData.LocalTime; }
 
 protected:
 	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent) override;

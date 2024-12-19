@@ -29,7 +29,14 @@ class ADoorBase : public AActor, public IInteractionInterface
 	
 	ADoorBase();
 
+protected:
 	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent) override;
+
+	virtual void BeginPlay() override;
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void TimeChanged(float newTime);
+
 
 protected:
 

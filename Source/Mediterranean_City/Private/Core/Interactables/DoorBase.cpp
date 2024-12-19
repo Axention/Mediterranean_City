@@ -3,6 +3,8 @@
 
 #include "Core/Interactables/DoorBase.h"
 
+#include "Utility/CaelumUtilities.h"
+
 // Sets default values
 ADoorBase::ADoorBase()
 {
@@ -48,5 +50,11 @@ void ADoorBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEve
       UnlockedSideMarker->SetVisibility(false);
    }
 #endif // WITH_EDITOR
+}
+
+void ADoorBase::BeginPlay()
+{
+   if (DoorlockState == EDoorlock::TimeLocked)
+      UCaelumUtilities::GetTimeOfDaySystem(this)->OnTimeChanged.AddUFunction(this, FName("TimeChanged"));
 }
 

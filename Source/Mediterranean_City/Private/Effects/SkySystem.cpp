@@ -13,6 +13,11 @@
 #include "Curves/CurveFloat.h"
 
 #include "Kismet/KismetMathLibrary.h"
+#include "Kismet/GameplayStatics.h"
+
+#include "Core/CaelumGamemode.h"
+
+DEFINE_LOG_CATEGORY(LogSkySystem);
 
 ASkySystem::ASkySystem()
 {
@@ -170,7 +175,8 @@ void ASkySystem::UpdateLighting()
 	Sun->SetRelativeRotation(FRotator(-SunCoords.altitude, SunCoords.azimuth, 0.0));
 	Moon->SetRelativeRotation(FRotator(-MoonCoords.altitude, MoonCoords.azimuth, 0.0));
 
-	SkySphere->SetRelativeRotation(FRotator(SimData.Latitude, 180.0 + SimData.NorthOffset, SimData.LocalTime * 15.f));
+	float DayOfYearNormalized = (float)FDateTime(SimData.Year, SimData.Month, SimData.Day).GetDayOfYear() / (float)FDateTime::DaysInYear(SimData.Year);
+	SkySphere->SetRelativeRotation(FRotator(SimData.Latitude, 180.0 + SimData.NorthOffset, 180.f - (SimData.LocalTime * 15.f) - (DayOfYearNormalized * 360.f) - SimData.Longitude));
 
 	const float SunNormalizedTwilight = (UKismetMathLibrary::FClamp(SunCoords.altitude, -18.0, 6.0) + 18.f) / 24.f;
 	if (SunIntensityFalloff)
@@ -252,6 +258,12 @@ void ASkySystem::UpdateSimulationTimeDate(float newTime)
 void ASkySystem::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
+
+	if (!FDateTime::Validate(SimData.Year, SimData.Month, SimData.Day, 0, 0, 0, 0))
+	{
+		UE_LOG(LogSkySystem, Error, TEXT("Simulation Date is not valid! -> automatically set to possible date"));
+		SimData.Day = fmin(SimData.Day, FDateTime::DaysInMonth(SimData.Year, SimData.Month));
+	}
 
 	CalculatePlanetaryPositions();
 	UpdateLighting();

@@ -7,7 +7,7 @@
 
 #include "CaelumGamemode.generated.h"
 
-class APhysicalSky;
+class ASkySystem;
 
 /**
  * 
@@ -19,8 +19,7 @@ class MEDITERRANEAN_CITY_API ACaelumGamemode : public AGameModeBase
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	APhysicalSky* ToDSystem = nullptr;
-
-	void SetToDSystem(APhysicalSky* ToD);
+	ASkySystem* ToDSystem = nullptr;
 	
+	virtual void StartPlay() override;
 };

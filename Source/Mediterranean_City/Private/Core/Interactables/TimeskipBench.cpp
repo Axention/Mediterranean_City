@@ -6,7 +6,7 @@
 #include "Utility/CaelumUtilities.h"
 #include "Core/Character/AtmoCharacter.h"
 #include "Core/Character/ActionAnimComponent.h"
-#include "Effects/PhysicalSky.h"
+#include "Effects/SkySystem.h"
 
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -18,7 +18,7 @@ ATimeskipBench::ATimeskipBench()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
-	TimeAmountToSkip = 3.f;
+	TimeToSkipTo = 12.f;
 
 	DefaultRoot = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	RootComponent = DefaultRoot;
@@ -45,9 +45,9 @@ void ATimeskipBench::Interact_Implementation(AAtmoCharacter* Character)
 		if (GetWorld()->GetTimerManager().TimerExists(Timer))
 			return;
 
-		OnTimeSkipInteraction.ExecuteIfBound(TimeAmountToSkip);
+		OnTimeSkipInteraction.ExecuteIfBound(TimeToSkipTo);
 
-		GetWorld()->GetTimerManager().SetTimer(Timer, TimeAmountToSkip + 1.f, timerParams);
+		GetWorld()->GetTimerManager().SetTimer(Timer, TimeToSkipTo + 1.f, timerParams);
 		break;
 	default:
 		if (UKismetMathLibrary::Dot_VectorVector(Character->GetActorForwardVector(), GetActorForwardVector()) > -0.25)
@@ -68,6 +68,9 @@ void ATimeskipBench::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	if (UCaelumUtilities::GetTimeOfDaySystem(GetWorld()) == nullptr)
+		UE_LOG(LogTemp, Error, TEXT("ToD is nullptr"));
+
 	OnTimeSkipInteraction.BindUFunction(UCaelumUtilities::GetTimeOfDaySystem(GetWorld()), FName("SkipTime"));
 }
 

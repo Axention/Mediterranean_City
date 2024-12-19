@@ -6,7 +6,7 @@
 
 #include "Kismet/GameplayStatics.h"
 
-APhysicalSky* UCaelumUtilities::GetTimeOfDaySystem(UObject* WorldContextObject)
+ASkySystem* UCaelumUtilities::GetTimeOfDaySystem(UObject* WorldContextObject)
 {
    return Cast<ACaelumGamemode>(UGameplayStatics::GetGameMode(WorldContextObject))->ToDSystem;
 }

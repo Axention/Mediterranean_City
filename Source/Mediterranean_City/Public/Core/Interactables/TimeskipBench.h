@@ -46,7 +46,7 @@ protected:
 	TObjectPtr<UBoxComponent> InteractionZone;
 
 	UPROPERTY(EditAnywhere)
-	float TimeAmountToSkip;
+	float TimeToSkipTo;
 
 private:
 	FTimerHandle Timer;
