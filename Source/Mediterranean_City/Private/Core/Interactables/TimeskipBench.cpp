@@ -16,62 +16,55 @@
 
 ATimeskipBench::ATimeskipBench()
 {
-	PrimaryActorTick.bCanEverTick = false;
+  PrimaryActorTick.bCanEverTick = false;
 
-	TimeToSkipTo = 12.f;
+  TimeToSkipTo = 12.f;
 
-	DefaultRoot = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
-	RootComponent = DefaultRoot;
-	DefaultRoot->SetMobility(EComponentMobility::Static);
+  DefaultRoot = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
+  RootComponent = DefaultRoot;
+  DefaultRoot->SetMobility(EComponentMobility::Static);
 
-	InteractionZone = CreateDefaultSubobject<UBoxComponent>(TEXT("Interactable"));
-	InteractionZone->SetupAttachment(RootComponent);
+  InteractionZone = CreateDefaultSubobject<UBoxComponent>(TEXT("Interactable"));
+  InteractionZone->SetupAttachment(RootComponent);
 
-	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
-	Mesh->SetupAttachment(RootComponent);
+  Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
+  Mesh->SetupAttachment(RootComponent);
 
-	WarpTarget = CreateDefaultSubobject<USceneComponent>(TEXT("Target"));
-	WarpTarget->SetupAttachment(RootComponent);
+  WarpTarget = CreateDefaultSubobject<USceneComponent>(TEXT("Target"));
+  WarpTarget->SetupAttachment(RootComponent);
 
 }
 
 void ATimeskipBench::Interact_Implementation(AAtmoCharacter* Character)
 {
-	FTimerManagerTimerParameters timerParams = { .bLoop = false, .bMaxOncePerFrame = false, .FirstDelay = -1.f };
+  ASkySystem* sky = UCaelumUtilities::GetTimeOfDaySystem(this);
+  switch (Character->GetMoveState()) {
+    case EMoveState::MS_Sitting:
+      if(sky->IsSkipOnCooldown())
+        return;
+      if (Character->GetTimeskipOffset() != (int8)sky->GetCurrentTime())
+        OnTimeSkipInteraction.ExecuteIfBound(Character->GetTimeskipOffset());
+      break;
 
-	switch (Character->GetMoveState())
-	{
-	case EMoveState::MS_Sitting:
-		if (GetWorld()->GetTimerManager().TimerExists(Timer))
-			return;
-
-		OnTimeSkipInteraction.ExecuteIfBound(TimeToSkipTo);
-
-		GetWorld()->GetTimerManager().SetTimer(Timer, TimeToSkipTo + 1.f, timerParams);
-		break;
-	default:
-		if (UKismetMathLibrary::Dot_VectorVector(Character->GetActorForwardVector(), GetActorForwardVector()) > -0.25)
-			return;
-		Character->GetMotionWarper()->AddOrUpdateWarpTargetFromComponent(FName("SeatTarget"), WarpTarget, NAME_None, false);
-		Character->GetActionAnimComponent()->SitDown();
-		OnInteractionDelegate.ExecuteIfBound();
-		break;
-	}
+    default:
+      if (UKismetMathLibrary::Dot_VectorVector(Character->GetActorForwardVector(), GetActorForwardVector()) > -0.25)
+        return;
+      Character->SitDown(WarpTarget);
+      OnInteractionDelegate.ExecuteIfBound();
+      break;
+  }
 }
 
 void ATimeskipBench::SetHighlight_Implementation(bool newState)
 {
-	Mesh->SetRenderCustomDepth(newState);
+  Mesh->SetRenderCustomDepth(newState);
 }
 
 void ATimeskipBench::BeginPlay()
 {
-	Super::BeginPlay();
-	
-	if (UCaelumUtilities::GetTimeOfDaySystem(GetWorld()) == nullptr)
-		UE_LOG(LogTemp, Error, TEXT("ToD is nullptr"));
+  Super::BeginPlay();
 
-	OnTimeSkipInteraction.BindUFunction(UCaelumUtilities::GetTimeOfDaySystem(GetWorld()), FName("SkipTime"));
+  OnTimeSkipInteraction.BindUFunction(UCaelumUtilities::GetTimeOfDaySystem(GetWorld()), FName("SkipTime"));
 }
 
 

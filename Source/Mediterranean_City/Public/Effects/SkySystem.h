@@ -78,6 +78,8 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	float GetCurrentTime() const { return SimData.LocalTime; }
 
+  bool IsSkipOnCooldown() const { return TimeskipRemaining > -1.f; }
+
 protected:
 	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent) override;
 

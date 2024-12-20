@@ -22,88 +22,105 @@ class UMotionWarpingComponent;
 UENUM(BlueprintType)
 enum class EMoveState : uint8
 {
-	MS_Idle,
-	MS_Walking,
-	MS_Sitting
-}; 
+  MS_Idle,
+  MS_Walking,
+  MS_Sitting
+};
 
 UENUM(BlueprintType)
 enum class EInteractionState : uint8
 {
-	IA_Idle,
-	IA_Busy
+  IA_Idle,
+  IA_Busy
 };
 
 
 UCLASS()
 class AAtmoCharacter : public ACharacter
 {
-	GENERATED_BODY()
+  GENERATED_BODY()
 
 public:
-	// Sets default values for this character's properties
-	AAtmoCharacter();
+  // Sets default values for this character's properties
+  AAtmoCharacter();
 
-	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+  virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
-	virtual void Tick(float DeltaSeconds) override;
 
-	UFUNCTION(BlueprintPure)
-	EMoveState GetMoveState() const { return MoveState; }
+  virtual void Tick(float DeltaSeconds) override;
 
-	UFUNCTION(BlueprintCallable)
-	void SetMoveState(EMoveState newState) { MoveState = newState; }
+  void SitDown(const USceneComponent* Target);
 
-	UFUNCTION(BlueprintPure)
-	EInteractionState GetInteractionState() const { return InteractionState; }
+  int8 GetTimeskipOffset() const { return TimeskipOffset; }
 
-	UActionAnimComponent* GetActionAnimComponent() const { return ActionAnimComponent; }
+  UFUNCTION(BlueprintPure)
+  EMoveState GetMoveState() const { return MoveState; }
 
-	UMotionWarpingComponent* GetMotionWarper() const { return MotionWarper; }
+  UFUNCTION(BlueprintCallable)
+  void SetMoveState(EMoveState newState) { MoveState = newState; }
+
+  UFUNCTION(BlueprintPure)
+  EInteractionState GetInteractionState() const { return InteractionState; }
+
+  UActionAnimComponent* GetActionAnimComponent() const { return ActionAnimComponent; }
+
+  UMotionWarpingComponent* GetMotionWarper() const { return MotionWarper; }
 
 protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+  virtual void BeginPlay() override;
 
-	UFUNCTION(BlueprintImplementableEvent)
-	void OnRun();
+  UFUNCTION(BlueprintImplementableEvent)
+  void OnRun();
 
-	UFUNCTION(BlueprintImplementableEvent)
-	void OnStopRun();
+  UFUNCTION(BlueprintImplementableEvent)
+  void OnStopRun();
 
 private:
-	void Move(const FInputActionValue& Value);
-	void Look(const FInputActionValue& Value);
-	void Run(const FInputActionValue& Value);
-	void Interact(const FInputActionValue& Value);
+  void Move(const FInputActionValue& Value);
+  void Look(const FInputActionValue& Value);
+  void Run(const FInputActionValue& Value);
+  void Interact(const FInputActionValue& Value);
 
-	void ClampRotation();
+  void StandUp(const FInputActionValue& Value);
+  void ChangeTimeOffset(const FInputActionValue& Value);
+
+
+  void ClampRotation();
 
 protected:
-	UPROPERTY(EditDefaultsOnly)
-	UCameraComponent* Camera;
+  UPROPERTY(EditDefaultsOnly)
+  UCameraComponent* Camera;
 
-	UPROPERTY(EditDefaultsOnly)
-	USpringArmComponent* CamBoom;
+  UPROPERTY(EditDefaultsOnly)
+  USpringArmComponent* CamBoom;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	UInteractionComponent* IAComponent;
+  UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+  UInteractionComponent* IAComponent;
 
-	UPROPERTY(EditDefaultsOnly)
-	TMap<FString, const UInputAction*> Actions;
+  UPROPERTY(EditDefaultsOnly, Category = "Input|Base")
+  UInputMappingContext* AtmoBaseMappingContext;
 
-	UPROPERTY(EditDefaultsOnly)
-	UInputMappingContext* AtmoBaseMappingContext;
+  UPROPERTY(EditDefaultsOnly, Category = "Input|Base")
+  TMap<FString, const UInputAction*> Actions;
 
-	UPROPERTY(BlueprintGetter = GetMoveState, BlueprintSetter = SetMoveState)
-	EMoveState MoveState;
+  UPROPERTY(EditDefaultsOnly, Category = "Input|Bench")
+  TObjectPtr<UInputMappingContext> BenchMappingContext;
 
-	UPROPERTY(BlueprintGetter = GetInteractionState)
-	EInteractionState InteractionState;
+  UPROPERTY(EditDefaultsOnly, Category = "Input|Bench")
+  TMap<FString, const UInputAction*> BenchActions;
 
-	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<UActionAnimComponent> ActionAnimComponent;
+  UPROPERTY(BlueprintGetter = GetMoveState, BlueprintSetter = SetMoveState)
+  EMoveState MoveState;
 
-	UPROPERTY()
-	TObjectPtr<UMotionWarpingComponent> MotionWarper;
+  UPROPERTY(BlueprintGetter = GetInteractionState)
+  EInteractionState InteractionState;
+
+  UPROPERTY(EditDefaultsOnly)
+  TObjectPtr<UActionAnimComponent> ActionAnimComponent;
+
+  UPROPERTY()
+  TObjectPtr<UMotionWarpingComponent> MotionWarper;
+
+  
+  int8 TimeskipOffset;
 };
