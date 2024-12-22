@@ -10,16 +10,16 @@
 class ASkySystem;
 
 /**
- * 
+ *
  */
 UCLASS()
 class MEDITERRANEAN_CITY_API ACaelumGamemode : public AGameModeBase
 {
-	GENERATED_BODY()
+  GENERATED_BODY()
 
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	ASkySystem* ToDSystem = nullptr;
-	
-	virtual void StartPlay() override;
+  UPROPERTY(EditAnywhere, BlueprintReadWrite)
+  ASkySystem* ToDSystem = nullptr;
+
+  virtual void StartPlay() override;
 };

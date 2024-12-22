@@ -9,15 +9,15 @@
 UCLASS()
 class ADisplayStand : public AActor
 {
-	GENERATED_BODY()
-	
-public:	
-	ADisplayStand();
+  GENERATED_BODY()
 
-	FTransform GetTransformModifier() const { return TransformModifier; }
+public:
+  ADisplayStand();
+
+  FTransform GetTransformModifier() const { return TransformModifier; }
 
 protected:
-	UPROPERTY(EditAnywhere, meta = (MakeEditWidget))
-	FTransform TransformModifier;
+  UPROPERTY(EditAnywhere, meta = (MakeEditWidget))
+  FTransform TransformModifier;
 
 };

@@ -89,13 +89,13 @@ private:
 
 protected:
   UPROPERTY(EditDefaultsOnly)
-  UCameraComponent* Camera;
+  TObjectPtr<UCameraComponent> Camera;
 
   UPROPERTY(EditDefaultsOnly)
-  USpringArmComponent* CamBoom;
+  TObjectPtr<USpringArmComponent> CamBoom;
 
   UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-  UInteractionComponent* IAComponent;
+  TObjectPtr<UInteractionComponent> IAComponent;
 
   UPROPERTY(EditDefaultsOnly, Category = "Input|Base")
   UInputMappingContext* AtmoBaseMappingContext;
@@ -121,6 +121,5 @@ protected:
   UPROPERTY()
   TObjectPtr<UMotionWarpingComponent> MotionWarper;
 
-  
   int8 TimeskipOffset;
 };

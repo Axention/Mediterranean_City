@@ -16,47 +16,47 @@ class AInteractable;
 UENUM()
 enum class EChangeCondition : uint8
 {
-	SpecifiedTimeframe,
-	InteractionTriggered,
-	ContactOnly
+  SpecifiedTimeframe,
+  InteractionTriggered,
+  ContactOnly
 };
 
 UCLASS()
 class AWeatherVolume : public AActor
 {
-	GENERATED_BODY()
-	
-public:	
-	AWeatherVolume();
+  GENERATED_BODY()
 
-	UFUNCTION()
-	void OnEnterField(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyindex, bool bFromSweep, const FHitResult& SweepResult);
+public:
+  AWeatherVolume();
 
-	UFUNCTION()
-	void OnExitField(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyindex);
+  UFUNCTION()
+  void OnEnterField(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyindex, bool bFromSweep, const FHitResult& SweepResult);
 
-protected:
-	virtual void BeginPlay() override;
-
-	UFUNCTION()
-	void OnInteract();
+  UFUNCTION()
+  void OnExitField(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyindex);
 
 protected:
-	UPROPERTY(EditInstanceOnly)
-	EChangeCondition ChangeCondition;
+  virtual void BeginPlay() override;
 
-	UPROPERTY(EditInstanceOnly)
-	EWeatherPresets WeatherToChangeTo;
+  UFUNCTION()
+  void OnInteract();
 
-	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<USphereComponent> TriggerField;
+protected:
+  UPROPERTY(EditInstanceOnly)
+  EChangeCondition ChangeCondition;
 
-	UPROPERTY(EditInstanceOnly, meta = (EditCondition = "ChangeCondition == EChangeCondition::SpecifiedTimeframe", EditConditionHides))
-	FFloatRange Timeframe;
+  UPROPERTY(EditInstanceOnly)
+  EWeatherPresets WeatherToChangeTo;
 
-	UPROPERTY(EditInstanceOnly, meta = (EditCondition = "ChangeCondition == EChangeCondition::InteractionTriggered", EditConditionHides, MustImplement = "InteractionInterface"))
-	TObjectPtr<AInteractable> InteractionTarget;
+  UPROPERTY(EditDefaultsOnly)
+  TObjectPtr<USphereComponent> TriggerField;
 
-	
+  UPROPERTY(EditInstanceOnly, meta = (EditCondition = "ChangeCondition == EChangeCondition::SpecifiedTimeframe", EditConditionHides))
+  FFloatRange Timeframe;
+
+  UPROPERTY(EditInstanceOnly, meta = (EditCondition = "ChangeCondition == EChangeCondition::InteractionTriggered", EditConditionHides, MustImplement = "InteractionInterface"))
+  TObjectPtr<AInteractable> InteractionTarget;
+
+
 
 };

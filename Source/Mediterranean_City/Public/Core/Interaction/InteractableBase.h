@@ -11,10 +11,10 @@ DECLARE_DELEGATE(FOnInteractionDelegate);
 UCLASS()
 class AInteractable : public AActor, public IInteractionInterface
 {
-   GENERATED_BODY()
+  GENERATED_BODY()
 
 public:
-   AInteractable();
+  AInteractable();
 
-   FOnInteractionDelegate OnInteractionDelegate;
+  FOnInteractionDelegate OnInteractionDelegate;
 };

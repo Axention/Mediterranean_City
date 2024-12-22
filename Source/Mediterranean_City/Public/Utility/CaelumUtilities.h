@@ -10,14 +10,14 @@
 #include "CaelumUtilities.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS()
 class MEDITERRANEAN_CITY_API UCaelumUtilities : public UBlueprintFunctionLibrary
 {
-	GENERATED_BODY()
+  GENERATED_BODY()
 
 public:
-	UFUNCTION(BlueprintCallable, BlueprintPure, meta = (WorldContext = "WorldContextObject"))
-	static ASkySystem* GetTimeOfDaySystem(UObject* WorldContextObject);
+  UFUNCTION(BlueprintCallable, BlueprintPure, meta = (WorldContext = "WorldContextObject"))
+  static ASkySystem* GetTimeOfDaySystem(UObject* WorldContextObject);
 };

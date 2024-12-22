@@ -8,30 +8,30 @@
 #include "InteractionComponent.generated.h"
 
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class MEDITERRANEAN_CITY_API UInteractionComponent : public UActorComponent
 {
-	GENERATED_BODY()
+  GENERATED_BODY()
 
-public:	
-	UInteractionComponent();
+public:
+  UInteractionComponent();
 
-	UFUNCTION(BlueprintCallable)
-	void TryInteraction(FVector CameraPosition, FVector CameraForward);
+  UFUNCTION(BlueprintCallable)
+  void TryInteraction(FVector CameraPosition, FVector CameraForward);
 
-	void SeekInteractible(FVector CamPos, FVector CamFwd);
+  void SeekInteractible(FVector CamPos, FVector CamFwd);
 
-	void ResetSeeking();
+  void ResetSeeking();
 
 protected:
-	UPROPERTY(EditDefaultsOnly)
-	float MaxInteractionDistance;
+  UPROPERTY(EditDefaultsOnly)
+  float MaxInteractionDistance;
 
-	UPROPERTY(EditAnywhere)
-	TArray<TEnumAsByte<EObjectTypeQuery>> SearchObjectTypes;
+  UPROPERTY(EditAnywhere)
+  TArray<TEnumAsByte<EObjectTypeQuery>> SearchObjectTypes;
 
 private:
-	TObjectPtr<AActor> lastHitActor;
+  TObjectPtr<AActor> lastHitActor;
 
-	bool bFoundInteractable{ false };
+  bool bFoundInteractable{ false };
 };

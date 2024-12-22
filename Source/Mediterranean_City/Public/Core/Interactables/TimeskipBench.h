@@ -15,39 +15,39 @@ DECLARE_DYNAMIC_DELEGATE_OneParam(FOnSkipTimeDelegate, float, Amount);
 UCLASS()
 class ATimeskipBench : public AInteractable
 {
-	GENERATED_BODY()
-	
-public:	
-	ATimeskipBench();
+  GENERATED_BODY()
 
-	virtual void Interact_Implementation(AAtmoCharacter* Character) override;
+public:
+  ATimeskipBench();
 
-	virtual void SetHighlight_Implementation(bool newState) override;
+  virtual void Interact_Implementation(AAtmoCharacter* Character) override;
+
+  virtual void SetHighlight_Implementation(bool newState) override;
 
 protected:
-	virtual void BeginPlay() override;
+  virtual void BeginPlay() override;
 
 
 public:
-	UPROPERTY()
-	FOnSkipTimeDelegate OnTimeSkipInteraction;
+  UPROPERTY()
+  FOnSkipTimeDelegate OnTimeSkipInteraction;
 
 protected:
-	UPROPERTY()
-	TObjectPtr<USceneComponent> DefaultRoot;
+  UPROPERTY()
+  TObjectPtr<USceneComponent> DefaultRoot;
 
-	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<USceneComponent> WarpTarget;
+  UPROPERTY(EditDefaultsOnly)
+  TObjectPtr<USceneComponent> WarpTarget;
 
-	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<UStaticMeshComponent> Mesh;
+  UPROPERTY(EditDefaultsOnly)
+  TObjectPtr<UStaticMeshComponent> Mesh;
 
-	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<UBoxComponent> InteractionZone;
+  UPROPERTY(EditDefaultsOnly)
+  TObjectPtr<UBoxComponent> InteractionZone;
 
-	UPROPERTY(EditAnywhere)
-	float TimeToSkipTo;
+  UPROPERTY(EditAnywhere)
+  float TimeToSkipTo;
 
 private:
-	FTimerHandle Timer;
+  FTimerHandle Timer;
 };

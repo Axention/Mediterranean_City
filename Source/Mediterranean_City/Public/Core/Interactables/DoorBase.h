@@ -14,49 +14,49 @@
 UENUM(BlueprintType)
 enum class EDoorlock : uint8
 {
-	Unlocked,
-	TimeLocked UMETA(ToolTip = "Will automatically open during given timeframe."),
-	LockedOneSided UMETA(DisplayName = "one-sided Lock"),
-	TimelockedHidden UMETA(DisplayName = "Secret/Hidden & Timelocked"),
-	KeyLocked UMETA(Hidden)
+  Unlocked,
+  TimeLocked UMETA(ToolTip = "Will automatically open during given timeframe."),
+  LockedOneSided UMETA(DisplayName = "one-sided Lock"),
+  TimelockedHidden UMETA(DisplayName = "Secret/Hidden & Timelocked"),
+  KeyLocked UMETA(Hidden)
 };
 
 
 UCLASS()
 class ADoorBase : public AActor, public IInteractionInterface
 {
-	GENERATED_BODY()
-	
-	ADoorBase();
+  GENERATED_BODY()
+
+  ADoorBase();
 
 protected:
-	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent) override;
+  virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent) override;
 
-	virtual void BeginPlay() override;
+  virtual void BeginPlay() override;
 
-	UFUNCTION(BlueprintImplementableEvent)
-	void TimeChanged(float newTime);
+  UFUNCTION(BlueprintImplementableEvent)
+  void TimeChanged(float newTime);
 
 
 protected:
 
-	UPROPERTY(EditDefaultsOnly)
-	UStaticMeshComponent* Root;
+  UPROPERTY(EditDefaultsOnly)
+  UStaticMeshComponent* Root;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	UStaticMeshComponent* Door;
+  UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+  UStaticMeshComponent* Door;
 
-	UPROPERTY(EditDefaultsOnly)
-	UBoxComponent* TraceFallback;
+  UPROPERTY(EditDefaultsOnly)
+  UBoxComponent* TraceFallback;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	EDoorlock DoorlockState;
+  UPROPERTY(EditAnywhere, BlueprintReadWrite)
+  EDoorlock DoorlockState;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (EditCondition = "DoorlockState == EDoorlock::LockedOneSided", EditConditionHides))
-	bool bInvertLockedSide;
+  UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (EditCondition = "DoorlockState == EDoorlock::LockedOneSided", EditConditionHides))
+  bool bInvertLockedSide;
 
 #if WITH_EDITOR
-	UArrowComponent* UnlockedSideMarker;
+  UArrowComponent* UnlockedSideMarker;
 #endif // WITH_EDITOR
 
 };

@@ -25,127 +25,132 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FOnTimeChangedDelegate, float);
 USTRUCT()
 struct FLocationInfo
 {
-	GENERATED_BODY()
+  GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, meta = (ClampMin = "-90.0", ClampMax = "90.0"))
-	float Latitude;
-	UPROPERTY(EditAnywhere, meta = (ClampMin = "-180.0", ClampMax = "180.0"))
-	float Longitude;
+  UPROPERTY(EditAnywhere, meta = (ClampMin = "-90.0", ClampMax = "90.0"))
+  float Latitude;
+  UPROPERTY(EditAnywhere, meta = (ClampMin = "-180.0", ClampMax = "180.0"))
+  float Longitude;
 
-	UPROPERTY(EditAnywhere, meta = (ClampMin = "1", ClampMax = "9999"))
-	int Year;
-	UPROPERTY(EditAnywhere, meta = (ClampMin = "1", ClampMax = "12"))
-	int Month;
-	UPROPERTY(EditAnywhere, meta = (ClampMin = "1", ClampMax = "31"))
-	int Day;
+  UPROPERTY(EditAnywhere, meta = (ClampMin = "1", ClampMax = "9999"))
+  int Year;
+  UPROPERTY(EditAnywhere, meta = (ClampMin = "1", ClampMax = "12"))
+  int Month;
+  UPROPERTY(EditAnywhere, meta = (ClampMin = "1", ClampMax = "31"))
+  int Day;
 
-	UPROPERTY(EditAnywhere, meta = (ClampMin = "0", ClampMax = "23.999"))
-	float LocalTime;
-	UPROPERTY(EditAnywhere, meta = (ClampMin = "-12", ClampMax = "12"))
-	int UTC_TimeZone;
+  UPROPERTY(EditAnywhere, meta = (ClampMin = "0", ClampMax = "23.999"))
+  float LocalTime;
+  UPROPERTY(EditAnywhere, meta = (ClampMin = "-12", ClampMax = "12"))
+  int UTC_TimeZone;
 
-	UPROPERTY(EditAnywhere, meta = (ClampMin = "-180.0", ClampMax = "180.0"))
-	float NorthOffset;
+  UPROPERTY(EditAnywhere, meta = (ClampMin = "-180.0", ClampMax = "180.0"))
+  float NorthOffset;
 
-	FLocationInfo() 
-	{
-		Latitude = 36.39f;
-		Longitude = 25.46f;
+  FLocationInfo()
+  {
+    Latitude = 36.39f;
+    Longitude = 25.46f;
 
-		Year = 2024;
-		Month = 6;
-		Day = 18;
+    Year = 2024;
+    Month = 6;
+    Day = 18;
 
-		LocalTime = 10.f;
-		UTC_TimeZone = 3;
+    LocalTime = 10.f;
+    UTC_TimeZone = 3;
 
-		NorthOffset = 0.f;
-	}
+    NorthOffset = 0.f;
+  }
+
+  int GetDayOfYear()
+  {
+    return FDateTime(Year, Month, Day).GetDayOfYear();
+  }
 };
 
 
 UCLASS()
 class ASkySystem : public AActor
 {
-	GENERATED_BODY()
-	
-public:	
-	ASkySystem();
+  GENERATED_BODY()
 
-	UFUNCTION()
-	void SkipTime(float newTime);
+public:
+  ASkySystem();
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	float GetCurrentTime() const { return SimData.LocalTime; }
+  UFUNCTION()
+  void SkipTime(float newTime);
+
+  UFUNCTION(BlueprintCallable, BlueprintPure)
+  float GetCurrentTime() const { return SimData.LocalTime; }
 
   bool IsSkipOnCooldown() const { return TimeskipRemaining > -1.f; }
 
 protected:
-	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent) override;
+  virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent) override;
 
-	virtual void Tick(float DeltaSeconds) override;
+  virtual void Tick(float DeltaSeconds) override;
 
-	void CalculatePlanetaryPositions();
+  void CalculatePlanetaryPositions();
 
-	void UpdateLighting();
+  void UpdateLighting();
 
-	void ChangeTime(float Amount);
+  void ChangeTime(float Amount);
 
 private:
-	void UpdateSimulationTimeDate(float newTime);
+  void UpdateSimulationTimeDate(float newTime);
 
 
 public:
-	FOnTimeChangedDelegate OnTimeChanged;
+  FOnTimeChangedDelegate OnTimeChanged;
 
 protected:
-	UPROPERTY(EditAnywhere, Category = "Simulation")
-	FLocationInfo SimData;
+  UPROPERTY(EditAnywhere, Category = "Simulation")
+  FLocationInfo SimData;
 
-	/* 1x -> Realtime, 60x -> 1s = 1min */
-	UPROPERTY(EditAnywhere, Category = "Simulation", meta = (ClampMin = "0.0"))
-	float SimulationSpeed;
+  /* 1x -> Realtime, 60x -> 1s = 1min */
+  UPROPERTY(EditAnywhere, Category = "Simulation", meta = (ClampMin = "0.0"))
+  float SimulationSpeed;
 
-	UPROPERTY(EditAnywhere, Category = "Lighting", meta = (ClampMin = "0.0"))
-	float SunLux;
+  UPROPERTY(EditAnywhere, Category = "Lighting", meta = (ClampMin = "0.0"))
+  float SunLux;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Lighting", AdvancedDisplay)
-	TObjectPtr<UCurveFloat> SunIntensityFalloff;
+  UPROPERTY(EditDefaultsOnly, Category = "Lighting", AdvancedDisplay)
+  TObjectPtr<UCurveFloat> SunIntensityFalloff;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Lighting")
-	float FastForwardTimeMultiplier;
+  UPROPERTY(EditDefaultsOnly, Category = "Lighting")
+  float FastForwardTimeMultiplier;
 
-	// ----- Components Begin
-	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<UPostProcessComponent> PostProcess;
+  // ----- Components Begin
+  UPROPERTY(EditDefaultsOnly)
+  TObjectPtr<UPostProcessComponent> PostProcess;
 
-	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<USkyLightComponent> SkyLight;
+  UPROPERTY(EditDefaultsOnly)
+  TObjectPtr<USkyLightComponent> SkyLight;
 
-	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<UDirectionalLightComponent> Sun;
+  UPROPERTY(EditDefaultsOnly)
+  TObjectPtr<UDirectionalLightComponent> Sun;
 
-	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<UDirectionalLightComponent> Moon;
+  UPROPERTY(EditDefaultsOnly)
+  TObjectPtr<UDirectionalLightComponent> Moon;
 
-	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<USkyAtmosphereComponent> Atmosphere;
+  UPROPERTY(EditDefaultsOnly)
+  TObjectPtr<USkyAtmosphereComponent> Atmosphere;
 
-	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<UVolumetricCloudComponent> VolumetricClouds;
+  UPROPERTY(EditDefaultsOnly)
+  TObjectPtr<UVolumetricCloudComponent> VolumetricClouds;
 
-	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<UExponentialHeightFogComponent> Fog;
+  UPROPERTY(EditDefaultsOnly)
+  TObjectPtr<UExponentialHeightFogComponent> Fog;
 
-	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<UStaticMeshComponent> SkySphere;
-	// ----- Components End
+  UPROPERTY(EditDefaultsOnly)
+  TObjectPtr<UStaticMeshComponent> SkySphere;
+  // ----- Components End
 
 
 private:
-	float TimeskipRemaining;
+  float TimeskipRemaining;
 
-	FAzimuthialCoords SunCoords;
+  FAzimuthialCoords SunCoords;
 
-	FAzimuthialCoords MoonCoords;
+  FAzimuthialCoords MoonCoords;
 };

@@ -18,14 +18,14 @@ class ADisplayStand;
 UCLASS()
 class ACollectable : public AInteractable
 {
-	GENERATED_BODY()
-	
-public:	
-	ACollectable();
+  GENERATED_BODY()
 
-	virtual void Interact_Implementation(AAtmoCharacter* Character) override;
+public:
+  ACollectable();
 
-	virtual void SetHighlight_Implementation(bool newState) override;
+  virtual void Interact_Implementation(AAtmoCharacter* Character) override;
+
+  virtual void SetHighlight_Implementation(bool newState) override;
 
 protected:
 
@@ -35,16 +35,16 @@ private:
 public:
 
 protected:
-	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<USceneComponent> Root;
+  UPROPERTY(EditDefaultsOnly)
+  TObjectPtr<USceneComponent> Root;
 
-	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<UStaticMeshComponent> Mesh;
+  UPROPERTY(EditDefaultsOnly)
+  TObjectPtr<UStaticMeshComponent> Mesh;
 
-	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<UBoxComponent> InteractionField;
+  UPROPERTY(EditDefaultsOnly)
+  TObjectPtr<UBoxComponent> InteractionField;
 
-	UPROPERTY(EditInstanceOnly)
-	TObjectPtr<ADisplayStand> DisplayStand;
+  UPROPERTY(EditInstanceOnly)
+  TObjectPtr<ADisplayStand> DisplayStand;
 
 };

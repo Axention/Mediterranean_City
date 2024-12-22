@@ -13,20 +13,20 @@ class AAtmoCharacter;
 UINTERFACE(MinimalAPI)
 class UInteractionInterface : public UInterface
 {
-	GENERATED_BODY()
+  GENERATED_BODY()
 };
 
 /**
- * 
+ *
  */
 class MEDITERRANEAN_CITY_API IInteractionInterface
 {
-	GENERATED_BODY()
+  GENERATED_BODY()
 
 public:
-	UFUNCTION(BlueprintNativeEvent)
-	void Interact(AAtmoCharacter* Character);
+  UFUNCTION(BlueprintNativeEvent)
+  void Interact(AAtmoCharacter* Character);
 
-	UFUNCTION(BlueprintNativeEvent)
-	void SetHighlight(bool newState);
+  UFUNCTION(BlueprintNativeEvent)
+  void SetHighlight(bool newState);
 };
