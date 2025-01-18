@@ -90,6 +90,7 @@ public:
   UFUNCTION()
   void BlendWeather(float Value);
 
+  UFUNCTION(BlueprintCallable)
   void ChangeWeather(UWeatherPreset* newWeather);
 
   bool IsWeatherReady() const { return (bBlendingWeather == 0) && (RandomTickIntervalInternal <= (RandomTickInterval - 30.f)); }
@@ -114,6 +115,8 @@ private:
 
   UFUNCTION()
   void OnWeatherBlendFin();
+
+  void UpdateWeatherValues();
 
 public:
   FOnTimeChangedDelegate OnTimeChanged;
@@ -141,7 +144,7 @@ protected:
   UPROPERTY(EditAnywhere, Category = "Weather")
   TObjectPtr<UWeatherPreset> CurrentWeather;
 
-  UPROPERTY(EditDefaultsOnly, Category = "Weather")
+  UPROPERTY(EditDefaultsOnly, Category = "Weather", BlueprintReadOnly)
   TArray<UWeatherPreset*> DefaultWeatherPresets;
 
   UPROPERTY(EditDefaultsOnly, Category = "Weather", AdvancedDisplay)

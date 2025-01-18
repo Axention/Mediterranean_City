@@ -296,14 +296,34 @@ void ASkySystem::OnWeatherBlendFin()
   WeatherParams->SetScalarParameterValue("detail", CurrentWeather->Detail);
 }
 
+void ASkySystem::UpdateWeatherValues()
+{
+  WeatherParams = GetWorld()->GetParameterCollectionInstance(WeatherParameterCollection);
+
+  WeatherParams->SetScalarParameterValue("coverage", CurrentWeather->CloudCoverage);
+
+  WeatherParams->SetScalarParameterValue("precipitation", CurrentWeather->Percipitation);
+
+  WeatherParams->SetScalarParameterValue("detail", CurrentWeather->Detail);
+
+  Atmosphere->SetMieAbsorptionScale(CurrentWeather->MieAbsorptionScale);
+
+  Fog->SetFogDensity(CurrentWeather->FogDensity);
+  Fog->SetVolumetricFogExtinctionScale(CurrentWeather->FogExtinction);
+}
+
 void ASkySystem::BlendWeather(float Value)
 {
-  Value = FMath::Clamp(Value, 0.0, 1.0);
   WeatherParams->SetScalarParameterValue("coverage", FMath::Lerp(PreviousWeather->CloudCoverage, CurrentWeather->CloudCoverage, Value));
 
   WeatherParams->SetScalarParameterValue("precipitation", FMath::Lerp(PreviousWeather->Percipitation, CurrentWeather->Percipitation, Value));
 
   WeatherParams->SetScalarParameterValue("detail", FMath::Lerp(PreviousWeather->Detail, CurrentWeather->Detail, Value));
+
+  Atmosphere->SetMieAbsorptionScale(FMath::Lerp(PreviousWeather->MieAbsorptionScale, CurrentWeather->MieAbsorptionScale, Value * Value));
+
+  Fog->SetFogDensity(FMath::Lerp(PreviousWeather->FogDensity, CurrentWeather->FogDensity, Value * Value));
+  Fog->SetVolumetricFogExtinctionScale(FMath::Lerp(PreviousWeather->FogExtinction, CurrentWeather->FogExtinction, Value * Value));
 }
 
 void ASkySystem::ChangeWeather(UWeatherPreset* newWeather)
@@ -320,13 +340,18 @@ void ASkySystem::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEv
 {
   Super::PostEditChangeProperty(PropertyChangedEvent);
 
-  if (!FDateTime::Validate(SimData.Year, SimData.Month, SimData.Day, 0, 0, 0, 0)) {
-    UE_LOG(LogSkySystem, Error, TEXT("Simulation Date is not valid! -> automatically set to possible date"));
-    SimData.Day = fmin(SimData.Day, FDateTime::DaysInMonth(SimData.Year, SimData.Month));
+  if (PropertyChangedEvent.MemberProperty->GetFName() == GET_MEMBER_NAME_CHECKED(ASkySystem, SimData)) {
+    if (!FDateTime::Validate(SimData.Year, SimData.Month, SimData.Day, 0, 0, 0, 0)) {
+      UE_LOG(LogSkySystem, Error, TEXT("Simulation Date is not valid! -> automatically set to possible date"));
+      SimData.Day = fmin(SimData.Day, FDateTime::DaysInMonth(SimData.Year, SimData.Month));
+    }
+    CalculatePlanetaryPositions();
+    UpdateLighting();
   }
 
-  CalculatePlanetaryPositions();
-  UpdateLighting();
+  if (PropertyChangedEvent.Property->GetFName() == GET_MEMBER_NAME_CHECKED(ASkySystem, CurrentWeather)) {
+    if (GetWorld()) UpdateWeatherValues();
+  }
 }
 
 void ASkySystem::Tick(float DeltaSeconds)

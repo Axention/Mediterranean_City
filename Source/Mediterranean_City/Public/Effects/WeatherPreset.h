@@ -32,4 +32,13 @@ public:
 
   UPROPERTY(EditAnywhere)
   uint8 bHasRain : 1;
+
+  UPROPERTY(EditAnywhere, meta = (ClampMin = "0.0", ClampMax = "1.0"))
+  float FogDensity;
+
+  UPROPERTY(EditAnywhere, meta = (ClampMin = "0.0", ClampMax = "10.0"))
+  float FogExtinction;
+
+  UPROPERTY(EditAnywhere, meta = (ClampMin = "0.0", ClampMax = "1.0"))
+  float MieAbsorptionScale;
 };
