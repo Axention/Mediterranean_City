@@ -13,74 +13,77 @@
 
 AWeatherVolume::AWeatherVolume()
 {
-	PrimaryActorTick.bCanEverTick = false;
+  PrimaryActorTick.bCanEverTick = false;
 
-	WeatherToChangeTo = EWeatherPresets::Sunny;
-	ChangeCondition = EChangeCondition::SpecifiedTimeframe;
+  WeatherToChangeTo = nullptr;
+  ChangeCondition = EChangeCondition::SpecifiedTimeframe;
 
-	Timeframe = FFloatRange(FFloatRangeBound().Inclusive(0.f), FFloatRangeBound().Exclusive(24.f));
+  Timeframe = FFloatRange(FFloatRangeBound().Inclusive(0.f), FFloatRangeBound().Exclusive(24.f));
 
-	TriggerField = CreateDefaultSubobject<USphereComponent>(TEXT("Trigger"));
-	TriggerField->SetupAttachment(RootComponent);
+  TriggerField = CreateDefaultSubobject<USphereComponent>(TEXT("Trigger"));
+  TriggerField->SetupAttachment(RootComponent);
 }
 
 void AWeatherVolume::OnEnterField(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyindex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (!OtherActor->ActorHasTag("Player"))
-		return;
+  if (!OtherActor->ActorHasTag("Player"))
+    return;
 
-	// TODO: check for weather cooldown
+  switch (ChangeCondition) {
 
-	switch (ChangeCondition)
-	{
+  case EChangeCondition::SpecifiedTimeframe:
+  {
+    if (!(Timeframe.HasLowerBound() && Timeframe.HasUpperBound())) {
+      UE_LOG(LogTemp, Error, TEXT("Timeframe has no Bounds! (Upper or Lower)"));
+      return;
+    }
 
-		case EChangeCondition::SpecifiedTimeframe:
-		{
-			if (!(Timeframe.HasLowerBound() && Timeframe.HasUpperBound()))
-			{
-				UE_LOG(LogTemp, Error, TEXT("Timeframe has no Bounds! (Upper or Lower)"));
-				return;
-			}
+    if (!UKismetMathLibrary::InRange_FloatFloat(UCaelumUtilities::GetTimeOfDaySystem(this)->GetCurrentTime(), Timeframe.GetLowerBoundValue(), Timeframe.GetUpperBoundValue(), true, false))
+      return;
 
-			if (!UKismetMathLibrary::InRange_FloatFloat(UCaelumUtilities::GetTimeOfDaySystem(this)->GetCurrentTime(), Timeframe.GetLowerBoundValue(), Timeframe.GetUpperBoundValue(), true, false))
-				return;
+    SendWeatherChange();
+    return;
 
-			// UCaelumUtilities::GetTimeOfDaySystem(this)->GetWeatherSystem()->TryWeatherChange(WeatherToChangeTo); 
-			// TODO: Implement base Weather System for communication
-
-			GEngine->AddOnScreenDebugMessage(256, 3.f, FColor::Green, "Weather changed via Timeframe!");
-			return;
-
-			break;
-		}
-		case EChangeCondition::InteractionTriggered:
-		{
-			InteractionTarget->OnInteractionDelegate.BindUFunction(this, FName("OnInteract"));
-			return;
-			break;
-		}
-		default:
-			GEngine->AddOnScreenDebugMessage(256, 3.f, FColor::Green, "Weather changed via default!");
-			break;
-	}
+    break;
+  }
+  case EChangeCondition::InteractionTriggered:
+  {
+    InteractionTarget->OnInteractionDelegate.BindUFunction(this, FName("OnInteract"));
+    return;
+    break;
+  }
+  default:
+    SendWeatherChange();
+    break;
+  }
 }
 
 void AWeatherVolume::OnExitField(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyindex)
 {
-	if (!OtherActor->ActorHasTag("Player"))
-		return;
+  if (!OtherActor->ActorHasTag("Player"))
+    return;
 
-	InteractionTarget->OnInteractionDelegate.Unbind();
+  InteractionTarget->OnInteractionDelegate.Unbind();
 }
 
 void AWeatherVolume::BeginPlay()
 {
-	TriggerField->OnComponentBeginOverlap.AddDynamic(this, &AWeatherVolume::OnEnterField);
-	TriggerField->OnComponentEndOverlap.AddDynamic(this, &AWeatherVolume::OnExitField);
+  TriggerField->OnComponentBeginOverlap.AddDynamic(this, &AWeatherVolume::OnEnterField);
+  TriggerField->OnComponentEndOverlap.AddDynamic(this, &AWeatherVolume::OnExitField);
 }
 
 void AWeatherVolume::OnInteract()
 {
-	GEngine->AddOnScreenDebugMessage(256, 3.f, FColor::Green, "Weather changed via Interaction!");
-	InteractionTarget->OnInteractionDelegate.Unbind();
+  if (SendWeatherChange())
+    InteractionTarget->OnInteractionDelegate.Unbind();
+}
+
+bool AWeatherVolume::SendWeatherChange()
+{
+  if (!UCaelumUtilities::GetTimeOfDaySystem(this)->IsWeatherReady())
+    return false;
+
+  UCaelumUtilities::GetTimeOfDaySystem(this)->ChangeWeather(WeatherToChangeTo);
+  GEngine->AddOnScreenDebugMessage(888, 4.f, FColor::Emerald, FString("Weather Changing via Event"));
+  return true;
 }

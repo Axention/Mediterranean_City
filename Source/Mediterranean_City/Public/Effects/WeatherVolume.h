@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 
 #include "Structs/WeatherPresets.h"
+#include "Effects/WeatherPreset.h"
 
 #include "WeatherVolume.generated.h"
 
@@ -41,12 +42,14 @@ protected:
   UFUNCTION()
   void OnInteract();
 
+  bool SendWeatherChange();
+
 protected:
   UPROPERTY(EditInstanceOnly)
   EChangeCondition ChangeCondition;
 
   UPROPERTY(EditInstanceOnly)
-  EWeatherPresets WeatherToChangeTo;
+  UWeatherPreset* WeatherToChangeTo;
 
   UPROPERTY(EditDefaultsOnly)
   TObjectPtr<USphereComponent> TriggerField;

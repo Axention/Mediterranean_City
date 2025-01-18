@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 
 #include "Utility/AstroMath.h"
+#include "Components/TimelineComponent.h"
 
 #include "SkySystem.generated.h"
 
@@ -18,6 +19,7 @@ class UVolumetricCloudComponent;
 class UDirectionalLightComponent;
 class UExponentialHeightFogComponent;
 class UCurveFloat;
+class UWeatherPreset;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnTimeChangedDelegate, float);
 
@@ -85,10 +87,19 @@ public:
 
   bool IsSkipOnCooldown() const { return TimeskipRemaining > -1.f; }
 
+  UFUNCTION()
+  void BlendWeather(float Value);
+
+  void ChangeWeather(UWeatherPreset* newWeather);
+
+  bool IsWeatherReady() const { return (bBlendingWeather == 0) && (RandomTickIntervalInternal <= (RandomTickInterval - 30.f)); }
+
 protected:
   virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent) override;
 
   virtual void Tick(float DeltaSeconds) override;
+
+  virtual void BeginPlay() override;
 
   void CalculatePlanetaryPositions();
 
@@ -99,6 +110,10 @@ protected:
 private:
   void UpdateSimulationTimeDate(float newTime);
 
+  void RndWeatherEvent();
+
+  UFUNCTION()
+  void OnWeatherBlendFin();
 
 public:
   FOnTimeChangedDelegate OnTimeChanged;
@@ -119,6 +134,21 @@ protected:
 
   UPROPERTY(EditDefaultsOnly, Category = "Lighting")
   float FastForwardTimeMultiplier;
+
+  UPROPERTY(EditAnywhere, Category = "Weather")
+  float RandomTickInterval;
+
+  UPROPERTY(EditAnywhere, Category = "Weather")
+  TObjectPtr<UWeatherPreset> CurrentWeather;
+
+  UPROPERTY(EditDefaultsOnly, Category = "Weather")
+  TArray<UWeatherPreset*> DefaultWeatherPresets;
+
+  UPROPERTY(EditDefaultsOnly, Category = "Weather", AdvancedDisplay)
+  TObjectPtr<UCurveFloat> DefaultWeatherBlend;
+
+  UPROPERTY(EditDefaultsOnly, Category = "Weather", AdvancedDisplay)
+  UMaterialParameterCollection* WeatherParameterCollection;
 
   // ----- Components Begin
   UPROPERTY(EditDefaultsOnly)
@@ -151,6 +181,12 @@ private:
   float TimeskipRemaining;
 
   FAzimuthialCoords SunCoords;
-
   FAzimuthialCoords MoonCoords;
+
+  UPROPERTY(VisibleAnywhere)
+  float RandomTickIntervalInternal;
+  FTimeline WeatherTimeline;
+  UWeatherPreset* PreviousWeather;
+  UMaterialParameterCollectionInstance* WeatherParams;
+  uint8 bBlendingWeather : 1;
 };

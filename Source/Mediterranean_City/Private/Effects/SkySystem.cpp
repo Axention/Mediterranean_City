@@ -11,9 +11,13 @@
 #include "Components/VolumetricCloudComponent.h"
 
 #include "Curves/CurveFloat.h"
+#include "Effects/WeatherPreset.h"
 
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/GameplayStatics.h"
+
+#include "Materials/MaterialParameterCollection.h"
+#include "Materials/MaterialParameterCollectionInstance.h"
 
 #include "Core/CaelumGamemode.h"
 
@@ -32,6 +36,10 @@ ASkySystem::ASkySystem()
   SunLux = 120000.f;
   FastForwardTimeMultiplier = 3.f;
   TimeskipRemaining = -1.f;
+
+  RandomTickInterval = 10.f;
+  RandomTickIntervalInternal = RandomTickInterval;
+  bBlendingWeather = 0;
 
   PostProcess = CreateDefaultSubobject<UPostProcessComponent>(TEXT("Global PostProcess"));
   RootComponent = PostProcess;
@@ -258,6 +266,56 @@ void ASkySystem::UpdateSimulationTimeDate(float newTime)
   }
 }
 
+void ASkySystem::RndWeatherEvent()
+{
+  if (RandomTickIntervalInternal <= 0.f && !DefaultWeatherPresets.IsEmpty()) {
+    RandomTickIntervalInternal = RandomTickInterval;
+
+    if (FMath::RandRange(0.0, 1.0) >= 0.0) {
+      int32 randIndex = FMath::RandRange(0, DefaultWeatherPresets.Num() - 1);
+      PreviousWeather = CurrentWeather;
+      CurrentWeather = DefaultWeatherPresets[randIndex];
+
+      if (PreviousWeather != CurrentWeather) {
+        WeatherTimeline.SetFloatCurve(CurrentWeather->BlendCurve, FName("Alpha"));
+        WeatherTimeline.PlayFromStart();
+        bBlendingWeather = true;
+      }
+    }
+  }
+}
+
+void ASkySystem::OnWeatherBlendFin()
+{
+  bBlendingWeather = false;
+
+  WeatherParams->SetScalarParameterValue("coverage", CurrentWeather->CloudCoverage);
+
+  WeatherParams->SetScalarParameterValue("precipitation", CurrentWeather->Percipitation);
+
+  WeatherParams->SetScalarParameterValue("detail", CurrentWeather->Detail);
+}
+
+void ASkySystem::BlendWeather(float Value)
+{
+  Value = FMath::Clamp(Value, 0.0, 1.0);
+  WeatherParams->SetScalarParameterValue("coverage", FMath::Lerp(PreviousWeather->CloudCoverage, CurrentWeather->CloudCoverage, Value));
+
+  WeatherParams->SetScalarParameterValue("precipitation", FMath::Lerp(PreviousWeather->Percipitation, CurrentWeather->Percipitation, Value));
+
+  WeatherParams->SetScalarParameterValue("detail", FMath::Lerp(PreviousWeather->Detail, CurrentWeather->Detail, Value));
+}
+
+void ASkySystem::ChangeWeather(UWeatherPreset* newWeather)
+{
+  PreviousWeather = CurrentWeather;
+  CurrentWeather = newWeather;
+
+  WeatherTimeline.SetFloatCurve(CurrentWeather->BlendCurve, FName("Alpha"));
+  WeatherTimeline.PlayFromStart();
+  bBlendingWeather = true;
+}
+
 void ASkySystem::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
   Super::PostEditChangeProperty(PropertyChangedEvent);
@@ -276,9 +334,28 @@ void ASkySystem::Tick(float DeltaSeconds)
   Super::Tick(DeltaSeconds);
 
   float TimeDelta = DeltaSeconds * SimulationSpeed * (24.0 / 86400.0);
-
   if (TimeskipRemaining > -1.f)
     TimeskipRemaining = TimeskipRemaining - TimeDelta * FastForwardTimeMultiplier;
-
   ChangeTime(TimeDelta * (TimeskipRemaining <= 0.f ? 1.f : FastForwardTimeMultiplier));
+
+  if (bBlendingWeather == false) {
+    RandomTickIntervalInternal -= DeltaSeconds;
+    RndWeatherEvent();
+  }
+  WeatherTimeline.TickTimeline(DeltaSeconds);
+}
+
+void ASkySystem::BeginPlay()
+{
+  Super::BeginPlay();
+
+  FOnTimelineFloat OnWeatherTimeline{};
+  OnWeatherTimeline.BindUFunction(this, "BlendWeather");
+  WeatherTimeline = FTimeline();
+  WeatherTimeline.AddInterpFloat(DefaultWeatherBlend, OnWeatherTimeline, FName("Blend"), FName("Alpha"));
+  FOnTimelineEvent OnTimelineEvent{};
+  OnTimelineEvent.BindUFunction(this, "OnWeatherBlendFin");
+  WeatherTimeline.SetTimelineFinishedFunc(OnTimelineEvent);
+
+  WeatherParams = GetWorld()->GetParameterCollectionInstance(WeatherParameterCollection);
 }
