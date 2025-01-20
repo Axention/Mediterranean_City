@@ -10,6 +10,11 @@
 #include "Components/ExponentialHeightFogComponent.h"
 #include "Components/VolumetricCloudComponent.h"
 
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraComponent.h"
+
+#include "GameFramework/Character.h"
+
 #include "Curves/CurveFloat.h"
 #include "Effects/WeatherPreset.h"
 
@@ -37,9 +42,12 @@ ASkySystem::ASkySystem()
   FastForwardTimeMultiplier = 3.f;
   TimeskipRemaining = -1.f;
 
-  RandomTickInterval = 10.f;
+  RandomTickInterval = 180.f;
   RandomTickIntervalInternal = RandomTickInterval;
   bBlendingWeather = 0;
+
+  RainParticles = CreateDefaultSubobject<UNiagaraComponent>(TEXT("Rain"));
+  RainParticles->bAutoActivate = false;
 
   PostProcess = CreateDefaultSubobject<UPostProcessComponent>(TEXT("Global PostProcess"));
   RootComponent = PostProcess;
@@ -273,14 +281,7 @@ void ASkySystem::RndWeatherEvent()
 
     if (FMath::RandRange(0.0, 1.0) >= 0.0) {
       int32 randIndex = FMath::RandRange(0, DefaultWeatherPresets.Num() - 1);
-      PreviousWeather = CurrentWeather;
-      CurrentWeather = DefaultWeatherPresets[randIndex];
-
-      if (PreviousWeather != CurrentWeather) {
-        WeatherTimeline.SetFloatCurve(CurrentWeather->BlendCurve, FName("Alpha"));
-        WeatherTimeline.PlayFromStart();
-        bBlendingWeather = true;
-      }
+      ChangeWeather(DefaultWeatherPresets[randIndex]);
     }
   }
 }
@@ -290,21 +291,20 @@ void ASkySystem::OnWeatherBlendFin()
   bBlendingWeather = false;
 
   WeatherParams->SetScalarParameterValue("coverage", CurrentWeather->CloudCoverage);
-
   WeatherParams->SetScalarParameterValue("precipitation", CurrentWeather->Percipitation);
-
   WeatherParams->SetScalarParameterValue("detail", CurrentWeather->Detail);
+  WeatherParams->SetScalarParameterValue("PuddleAmount", CurrentWeather->bHasRain ? 0.9f : PreviousWeather->bHasRain ? 0.5f : 0.f);
+
+  if (!CurrentWeather->bHasRain) RainParticles->Deactivate();
 }
 
 void ASkySystem::UpdateWeatherValues()
 {
   WeatherParams = GetWorld()->GetParameterCollectionInstance(WeatherParameterCollection);
-
   WeatherParams->SetScalarParameterValue("coverage", CurrentWeather->CloudCoverage);
-
   WeatherParams->SetScalarParameterValue("precipitation", CurrentWeather->Percipitation);
-
   WeatherParams->SetScalarParameterValue("detail", CurrentWeather->Detail);
+  WeatherParams->SetScalarParameterValue("PuddleAmount", CurrentWeather->bHasRain ? 0.9f : 0.f);
 
   Atmosphere->SetMieAbsorptionScale(CurrentWeather->MieAbsorptionScale);
 
@@ -315,25 +315,35 @@ void ASkySystem::UpdateWeatherValues()
 void ASkySystem::BlendWeather(float Value)
 {
   WeatherParams->SetScalarParameterValue("coverage", FMath::Lerp(PreviousWeather->CloudCoverage, CurrentWeather->CloudCoverage, Value));
-
   WeatherParams->SetScalarParameterValue("precipitation", FMath::Lerp(PreviousWeather->Percipitation, CurrentWeather->Percipitation, Value));
-
   WeatherParams->SetScalarParameterValue("detail", FMath::Lerp(PreviousWeather->Detail, CurrentWeather->Detail, Value));
+
+
+  WeatherParams->SetScalarParameterValue("PuddleAmount", FMath::Lerp(PuddleAmountInternalSnap, CurrentWeather->bHasRain ? 0.9f : PreviousWeather->bHasRain ? 0.7f : 0.f, Value));
 
   Atmosphere->SetMieAbsorptionScale(FMath::Lerp(PreviousWeather->MieAbsorptionScale, CurrentWeather->MieAbsorptionScale, Value * Value));
 
   Fog->SetFogDensity(FMath::Lerp(PreviousWeather->FogDensity, CurrentWeather->FogDensity, Value * Value));
   Fog->SetVolumetricFogExtinctionScale(FMath::Lerp(PreviousWeather->FogExtinction, CurrentWeather->FogExtinction, Value * Value));
+
+  RainParticles->SetVariableFloat(FName("RainAmount"), CurrentWeather->bHasRain ? Value : 1.f - Value);
 }
 
 void ASkySystem::ChangeWeather(UWeatherPreset* newWeather)
 {
+  if (newWeather == CurrentWeather)
+    return;
+
   PreviousWeather = CurrentWeather;
   CurrentWeather = newWeather;
+
+  WeatherParams->GetScalarParameterValue("PuddleAmount", PuddleAmountInternalSnap);
 
   WeatherTimeline.SetFloatCurve(CurrentWeather->BlendCurve, FName("Alpha"));
   WeatherTimeline.PlayFromStart();
   bBlendingWeather = true;
+  if (CurrentWeather->bHasRain) RainParticles->Activate();
+
 }
 
 void ASkySystem::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
@@ -383,4 +393,8 @@ void ASkySystem::BeginPlay()
   WeatherTimeline.SetTimelineFinishedFunc(OnTimelineEvent);
 
   WeatherParams = GetWorld()->GetParameterCollectionInstance(WeatherParameterCollection);
+
+  FAttachmentTransformRules rules = FAttachmentTransformRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, false);
+  RainParticles->AttachToComponent(UGameplayStatics::GetPlayerCharacter(this, 0)->GetRootComponent(), rules);
+  RainParticles->SetRelativeLocation(FVector(0, 0, 750));
 }

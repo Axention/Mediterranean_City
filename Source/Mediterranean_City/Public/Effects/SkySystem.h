@@ -20,6 +20,7 @@ class UDirectionalLightComponent;
 class UExponentialHeightFogComponent;
 class UCurveFloat;
 class UWeatherPreset;
+class UNiagaraComponent;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnTimeChangedDelegate, float);
 
@@ -177,6 +178,9 @@ protected:
 
   UPROPERTY(EditDefaultsOnly)
   TObjectPtr<UStaticMeshComponent> SkySphere;
+
+  UPROPERTY(EditDefaultsOnly)
+  TObjectPtr<UNiagaraComponent> RainParticles;
   // ----- Components End
 
 
@@ -186,10 +190,12 @@ private:
   FAzimuthialCoords SunCoords;
   FAzimuthialCoords MoonCoords;
 
-  UPROPERTY(VisibleAnywhere)
   float RandomTickIntervalInternal;
   FTimeline WeatherTimeline;
   UWeatherPreset* PreviousWeather;
   UMaterialParameterCollectionInstance* WeatherParams;
   uint8 bBlendingWeather : 1;
+
+  UPROPERTY(VisibleAnywhere)
+  float PuddleAmountInternalSnap;
 };

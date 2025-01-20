@@ -48,7 +48,7 @@ protected:
   UPROPERTY(EditInstanceOnly)
   EChangeCondition ChangeCondition;
 
-  UPROPERTY(EditInstanceOnly)
+  UPROPERTY(EditInstanceOnly, BlueprintReadOnly)
   UWeatherPreset* WeatherToChangeTo;
 
   UPROPERTY(EditDefaultsOnly)
