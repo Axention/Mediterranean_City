@@ -293,7 +293,7 @@ void ASkySystem::OnWeatherBlendFin()
   WeatherParams->SetScalarParameterValue("coverage", CurrentWeather->CloudCoverage);
   WeatherParams->SetScalarParameterValue("precipitation", CurrentWeather->Percipitation);
   WeatherParams->SetScalarParameterValue("detail", CurrentWeather->Detail);
-  WeatherParams->SetScalarParameterValue("PuddleAmount", CurrentWeather->bHasRain ? 0.9f : PreviousWeather->bHasRain ? 0.5f : 0.f);
+  WeatherParams->SetScalarParameterValue("PuddleAmount", CurrentWeather->bHasRain ? 0.9f : PreviousWeather->bHasRain ? 0.7f : 0.f);
 
   if (!CurrentWeather->bHasRain) RainParticles->Deactivate();
 }
