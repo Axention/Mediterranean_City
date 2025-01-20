@@ -12,7 +12,7 @@
 /**
  *
  */
-UCLASS()
+UCLASS(BlueprintType)
 class UWeatherPreset : public UDataAsset
 {
   GENERATED_BODY()
