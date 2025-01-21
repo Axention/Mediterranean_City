@@ -87,6 +87,8 @@ void ASkySystem::SkipTime(float newTime)
   else {
     TimeskipRemaining = newTime - SimData.LocalTime;
   }
+
+  TimeSkipInternal = TimeskipRemaining;
 }
 
 void ASkySystem::CalculatePlanetaryPositions()
@@ -368,10 +370,17 @@ void ASkySystem::Tick(float DeltaSeconds)
 {
   Super::Tick(DeltaSeconds);
 
+  float TSMul = TimeSkipEase->GetFloatValue(TimeskipRemaining / TimeSkipInternal);
+
   float TimeDelta = DeltaSeconds * SimulationSpeed * (24.0 / 86400.0);
-  if (TimeskipRemaining > -1.f)
-    TimeskipRemaining = TimeskipRemaining - TimeDelta * FastForwardTimeMultiplier;
-  ChangeTime(TimeDelta * (TimeskipRemaining <= 0.f ? 1.f : FastForwardTimeMultiplier));
+  if (TimeskipRemaining > -0.1f)
+    TimeskipRemaining = TimeskipRemaining - TimeDelta * TSMul;
+
+  ChangeTime(TimeDelta * (TimeskipRemaining <= 0.f ? 1.f : TSMul));
+
+  float _Time;
+  WeatherParams->GetScalarParameterValue("Time", _Time);
+  WeatherParams->SetScalarParameterValue("Time", _Time + (DeltaSeconds * TSMul));
 
   if (bBlendingWeather == false) {
     RandomTickIntervalInternal -= DeltaSeconds;

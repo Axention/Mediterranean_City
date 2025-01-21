@@ -86,7 +86,7 @@ public:
   UFUNCTION(BlueprintCallable, BlueprintPure)
   float GetCurrentTime() const { return SimData.LocalTime; }
 
-  bool IsSkipOnCooldown() const { return TimeskipRemaining > -1.f; }
+  bool IsSkipOnCooldown() const { return TimeskipRemaining > 0.f; }
 
   UFUNCTION()
   void BlendWeather(float Value);
@@ -154,6 +154,9 @@ protected:
   UPROPERTY(EditDefaultsOnly, Category = "Weather", AdvancedDisplay)
   UMaterialParameterCollection* WeatherParameterCollection;
 
+  UPROPERTY(EditDefaultsOnly, Category = "Other")
+  TObjectPtr<UCurveFloat> TimeSkipEase;
+
   // ----- Components Begin
   UPROPERTY(EditDefaultsOnly)
   TObjectPtr<UPostProcessComponent> PostProcess;
@@ -185,6 +188,7 @@ protected:
 
 
 private:
+  UPROPERTY(VisibleAnywhere)
   float TimeskipRemaining;
 
   FAzimuthialCoords SunCoords;
@@ -195,7 +199,6 @@ private:
   UWeatherPreset* PreviousWeather;
   UMaterialParameterCollectionInstance* WeatherParams;
   uint8 bBlendingWeather : 1;
-
-  UPROPERTY(VisibleAnywhere)
   float PuddleAmountInternalSnap;
+  float TimeSkipInternal;
 };
