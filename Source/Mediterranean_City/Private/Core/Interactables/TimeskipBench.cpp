@@ -18,8 +18,6 @@ ATimeskipBench::ATimeskipBench()
 {
   PrimaryActorTick.bCanEverTick = false;
 
-  TimeToSkipTo = 12.f;
-
   DefaultRoot = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
   RootComponent = DefaultRoot;
   DefaultRoot->SetMobility(EComponentMobility::Static);
@@ -39,19 +37,19 @@ void ATimeskipBench::Interact_Implementation(AAtmoCharacter* Character)
 {
   ASkySystem* sky = UCaelumUtilities::GetTimeOfDaySystem(this);
   switch (Character->GetMoveState()) {
-    case EMoveState::MS_Sitting:
-      if(sky->IsSkipOnCooldown())
-        return;
-      if (Character->GetTimeskipOffset() != (int8)sky->GetCurrentTime())
-        OnTimeSkipInteraction.ExecuteIfBound(Character->GetTimeskipOffset());
-      break;
+  case EMoveState::MS_Sitting:
+    if (sky->IsSkipOnCooldown())
+      return;
+    if (Character->GetTimeskipOffset() != (int8)sky->GetCurrentTime())
+      OnTimeSkipInteraction.ExecuteIfBound(Character->GetTimeskipOffset());
+    break;
 
-    default:
-      if (UKismetMathLibrary::Dot_VectorVector(Character->GetActorForwardVector(), GetActorForwardVector()) > -0.25)
-        return;
-      Character->SitDown(WarpTarget);
-      OnInteractionDelegate.ExecuteIfBound();
-      break;
+  default:
+    if (UKismetMathLibrary::Dot_VectorVector(Character->GetActorForwardVector(), GetActorForwardVector()) > -0.25)
+      return;
+    Character->SitDown(WarpTarget);
+    OnInteractionDelegate.ExecuteIfBound();
+    break;
   }
 }
 

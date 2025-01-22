@@ -294,7 +294,6 @@ void ASkySystem::OnWeatherBlendFin()
 
   WeatherParams->SetScalarParameterValue("coverage", CurrentWeather->CloudCoverage);
   WeatherParams->SetScalarParameterValue("precipitation", CurrentWeather->Percipitation);
-  WeatherParams->SetScalarParameterValue("detail", CurrentWeather->Detail);
   WeatherParams->SetScalarParameterValue("PuddleAmount", CurrentWeather->bHasRain ? 0.9f : PreviousWeather->bHasRain ? 0.7f : 0.f);
 
   if (!CurrentWeather->bHasRain) RainParticles->Deactivate();
@@ -305,7 +304,6 @@ void ASkySystem::UpdateWeatherValues()
   WeatherParams = GetWorld()->GetParameterCollectionInstance(WeatherParameterCollection);
   WeatherParams->SetScalarParameterValue("coverage", CurrentWeather->CloudCoverage);
   WeatherParams->SetScalarParameterValue("precipitation", CurrentWeather->Percipitation);
-  WeatherParams->SetScalarParameterValue("detail", CurrentWeather->Detail);
   WeatherParams->SetScalarParameterValue("PuddleAmount", CurrentWeather->bHasRain ? 0.9f : 0.f);
 
   Atmosphere->SetMieAbsorptionScale(CurrentWeather->MieAbsorptionScale);
@@ -318,9 +316,6 @@ void ASkySystem::BlendWeather(float Value)
 {
   WeatherParams->SetScalarParameterValue("coverage", FMath::Lerp(PreviousWeather->CloudCoverage, CurrentWeather->CloudCoverage, Value));
   WeatherParams->SetScalarParameterValue("precipitation", FMath::Lerp(PreviousWeather->Percipitation, CurrentWeather->Percipitation, Value));
-  WeatherParams->SetScalarParameterValue("detail", FMath::Lerp(PreviousWeather->Detail, CurrentWeather->Detail, Value));
-
-
   WeatherParams->SetScalarParameterValue("PuddleAmount", FMath::Lerp(PuddleAmountInternalSnap, CurrentWeather->bHasRain ? 0.9f : PreviousWeather->bHasRain ? 0.7f : 0.f, Value));
 
   Atmosphere->SetMieAbsorptionScale(FMath::Lerp(PreviousWeather->MieAbsorptionScale, CurrentWeather->MieAbsorptionScale, Value * Value));

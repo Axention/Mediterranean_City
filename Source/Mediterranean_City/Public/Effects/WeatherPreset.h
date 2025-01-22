@@ -27,9 +27,6 @@ public:
   UPROPERTY(EditAnywhere, meta = (ClampMin = "0.0", ClampMax = "1.0"))
   float Percipitation;
 
-  UPROPERTY(EditAnywhere, meta = (ClampMin = "0.0", ClampMax = "1.0"))
-  float Detail;
-
   UPROPERTY(EditAnywhere)
   uint8 bHasRain : 1;
 
