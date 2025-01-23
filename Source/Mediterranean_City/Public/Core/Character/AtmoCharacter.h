@@ -16,8 +16,10 @@ struct FInputActionValue;
 
 class UInteractionComponent;
 class UActionAnimComponent;
+class UPlayerUIComponent;
 
 class UMotionWarpingComponent;
+
 
 UENUM(BlueprintType)
 enum class EMoveState : uint8
@@ -76,6 +78,7 @@ protected:
   void OnStopRun();
 
 private:
+  // Keybound Functions Begin
   void Move(const FInputActionValue& Value);
   void Look(const FInputActionValue& Value);
   void Run(const FInputActionValue& Value);
@@ -83,7 +86,7 @@ private:
 
   void StandUp(const FInputActionValue& Value);
   void ChangeTimeOffset(const FInputActionValue& Value);
-
+  // Keybound Functions End
 
   void ClampRotation();
 
@@ -120,6 +123,9 @@ protected:
 
   UPROPERTY()
   TObjectPtr<UMotionWarpingComponent> MotionWarper;
+
+  UPROPERTY(EditDefaultsOnly)
+  TObjectPtr<UPlayerUIComponent> UIComponent;
 
   int8 TimeskipOffset;
 };

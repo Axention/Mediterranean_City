@@ -23,6 +23,8 @@
 #include "Core/Interaction/InteractionComponent.h"
 #include "Core/Character/ActionAnimComponent.h"
 
+#include "UI/PlayerUIComponent.h"
+
 #include "MotionWarpingComponent.h"
 
 AAtmoCharacter::AAtmoCharacter()
@@ -46,6 +48,7 @@ AAtmoCharacter::AAtmoCharacter()
 
   MotionWarper = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("Motion Warping Component"));
 
+  UIComponent = nullptr;
 }
 
 void AAtmoCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -53,18 +56,15 @@ void AAtmoCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
   Super::SetupPlayerInputComponent(PlayerInputComponent);
 
   //Add Input Mapping Context
-  if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
-  {
-    if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
-    {
+  if (APlayerController* PlayerController = Cast<APlayerController>(Controller)) {
+    if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer())) {
       Subsystem->AddMappingContext(AtmoBaseMappingContext, 0);
     }
   }
 
 
   UEnhancedInputComponent* Input = Cast<UEnhancedInputComponent>(PlayerInputComponent);
-  if (Input)
-  {
+  if (Input) {
     Input->BindAction(Actions["Move"], ETriggerEvent::Triggered, this, &AAtmoCharacter::Move);
 
     Input->BindAction(Actions["Look"], ETriggerEvent::Triggered, this, &AAtmoCharacter::Look);
@@ -86,8 +86,7 @@ void AAtmoCharacter::Tick(float DeltaSeconds)
 {
 
 
-  if (GetMesh()->GetAnimInstance()->IsAnyMontagePlaying())
-  {
+  if (GetMesh()->GetAnimInstance()->IsAnyMontagePlaying()) {
     ClampRotation();
   }
 
@@ -107,11 +106,15 @@ void AAtmoCharacter::SitDown(const USceneComponent* Target)
 
   GetMotionWarper()->AddOrUpdateWarpTargetFromComponent(FName("SeatTarget"), Target, NAME_None, false);
   GetActionAnimComponent()->SitDown();
+
+  UIComponent->ToggleBenchUI();
 }
 
 void AAtmoCharacter::BeginPlay()
 {
   Super::BeginPlay();
+
+  UIComponent = GetComponentByClass<UPlayerUIComponent>();
 }
 
 void AAtmoCharacter::Move(const FInputActionValue& Value)
@@ -155,8 +158,8 @@ void AAtmoCharacter::Interact(const FInputActionValue& Value)
 
 void AAtmoCharacter::StandUp(const FInputActionValue& Value)
 {
-  
-  if(UCaelumUtilities::GetTimeOfDaySystem(this)->IsSkipOnCooldown())
+
+  if (UCaelumUtilities::GetTimeOfDaySystem(this)->IsSkipOnCooldown())
     return;
 
   if (APlayerController* PlayerController = Cast<APlayerController>(Controller)) {
@@ -167,6 +170,8 @@ void AAtmoCharacter::StandUp(const FInputActionValue& Value)
 
   if (GetMoveState() == EMoveState::MS_Sitting)
     GetActionAnimComponent()->StandUp();
+
+  UIComponent->ToggleBenchUI();
 }
 
 void AAtmoCharacter::ChangeTimeOffset(const FInputActionValue& Value)
@@ -175,8 +180,7 @@ void AAtmoCharacter::ChangeTimeOffset(const FInputActionValue& Value)
   TimeskipOffset += val;
   TimeskipOffset = Astro::Overflow(TimeskipOffset, 24.f);
 
-  FString message = FString::Printf(TEXT("Skip to Time: %i"), TimeskipOffset);
-  GEngine->AddOnScreenDebugMessage(69121, 3.f, FColor::Green, message);
+  UIComponent->UpdateBenchUI(TimeskipOffset);
 }
 
 void AAtmoCharacter::ClampRotation()
