@@ -398,6 +398,8 @@ void ASkySystem::BeginPlay()
 
   WeatherParams = GetWorld()->GetParameterCollectionInstance(WeatherParameterCollection);
 
+  if (UGameplayStatics::GetPlayerCharacter(this, 0) == nullptr)
+    return;
   FAttachmentTransformRules rules = FAttachmentTransformRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, false);
   RainParticles->AttachToComponent(UGameplayStatics::GetPlayerCharacter(this, 0)->GetRootComponent(), rules);
   RainParticles->SetRelativeLocation(FVector(0, 0, 750));
