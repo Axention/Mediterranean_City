@@ -8,7 +8,7 @@ public class Mediterranean_City : ModuleRules
     {
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
-        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "MotionWarping", "Niagara" });
+        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "MotionWarping", "Niagara", "MoviePlayer", "UMG" });
 
         PrivateIncludePaths.AddRange(new string[] { "Mediterranean_City" });
 
