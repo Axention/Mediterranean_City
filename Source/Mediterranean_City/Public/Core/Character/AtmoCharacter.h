@@ -127,5 +127,6 @@ protected:
   UPROPERTY(EditDefaultsOnly)
   TObjectPtr<UPlayerUIComponent> UIComponent;
 
-  int8 TimeskipOffset;
+  UPROPERTY(BlueprintReadOnly)
+  int TimeskipOffset;
 };

@@ -35,5 +35,5 @@ void UCaelumGameInstance::BeginLoadingScreen(const FString& MapName)
 
 void UCaelumGameInstance::EndLoadingScreen(UWorld* InLoadedWorld)
 {
-
+  LoadingSWidgetPtr.Reset();
 }

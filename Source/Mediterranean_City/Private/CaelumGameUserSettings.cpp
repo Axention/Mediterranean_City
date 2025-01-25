@@ -12,7 +12,7 @@
 
 UCaelumGameUserSettings* UCaelumGameUserSettings::GetGameSettings()
 {
-  return Cast<UCaelumGameUserSettings>(GetGameUserSettings());
+  return CastChecked<UCaelumGameUserSettings>(GetGameUserSettings());
 }
 
 void UCaelumGameUserSettings::SetMusicVolume(float Volume)
