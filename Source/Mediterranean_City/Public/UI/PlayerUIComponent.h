@@ -21,4 +21,8 @@ public:
 
   UFUNCTION(BlueprintImplementableEvent)
   void UpdateBenchUI(int newTime);
+
+
+  UFUNCTION(BlueprintImplementableEvent)
+  void ShowHelpUI();
 };

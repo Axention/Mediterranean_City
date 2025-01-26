@@ -217,6 +217,8 @@ void ASkySystem::UpdateLighting()
     Sun->bCastCloudShadows = false;
     Sun->MarkRenderStateDirty();
 
+    OnSunset.Broadcast();
+
   }
   else if (SunCoords.altitude >= -2.0 && Sun->CastDynamicShadows == false) {
     Sun->CastDynamicShadows = true;

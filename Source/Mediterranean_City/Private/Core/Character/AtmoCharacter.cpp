@@ -108,6 +108,7 @@ void AAtmoCharacter::SitDown(const USceneComponent* Target)
   GetActionAnimComponent()->SitDown();
 
   UIComponent->ToggleBenchUI();
+  UIComponent->ShowHelpUI();
 }
 
 void AAtmoCharacter::BeginPlay()

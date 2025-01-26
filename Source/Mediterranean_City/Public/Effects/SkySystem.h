@@ -24,6 +24,8 @@ class UNiagaraComponent;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnTimeChangedDelegate, float);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnSunsetDelegate);
+
 
 USTRUCT()
 struct FLocationInfo
@@ -121,6 +123,9 @@ private:
 
 public:
   FOnTimeChangedDelegate OnTimeChanged;
+
+  UPROPERTY(BlueprintAssignable)
+  FOnSunsetDelegate OnSunset;
 
 protected:
   UPROPERTY(EditAnywhere, Category = "Simulation")
