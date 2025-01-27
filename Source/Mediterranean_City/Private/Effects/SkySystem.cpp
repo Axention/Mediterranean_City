@@ -28,23 +28,13 @@
 
 DEFINE_LOG_CATEGORY(LogSkySystem);
 
+
+
 ASkySystem::ASkySystem()
 {
   PrimaryActorTick.bCanEverTick = true;
 
-  SimData = FLocationInfo();
-  SimulationSpeed = 1.f;
-
-  SunCoords = FAzimuthialCoords();
-  MoonCoords = FAzimuthialCoords();
-
-  SunLux = 120000.f;
-  FastForwardTimeMultiplier = 3.f;
-  TimeskipRemaining = -1.f;
-
-  RandomTickInterval = 180.f;
-  RandomTickIntervalInternal = RandomTickInterval;
-  bBlendingWeather = 0;
+  // Begin Initialize Components
 
   RainParticles = CreateDefaultSubobject<UNiagaraComponent>(TEXT("Rain"));
   RainParticles->bAutoActivate = false;
@@ -77,18 +67,209 @@ ASkySystem::ASkySystem()
   SkySphere = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("SkySphere"));
   SkySphere->SetupAttachment(RootComponent);
 
+  // End Initialize Components
+  //
+  // Begin Initialize Members
+
+  SimData = FLocationInfo();
+  SimulationSpeed = 1.f;
+  SunLux = 120000.f;
+  SunIntensityFalloff = nullptr;
+
+  RandomTickCooldown = 120.f;
+  RandomWeatherChance = 0.25f;
+  CurrentWeather = nullptr;
+  DefaultWeatherPresets = {};
+  DefaultWeatherBlend = nullptr;
+  WeatherParameterCollection = nullptr;
+
+  TimeSkipEase = nullptr;
+  TimeSkipDuration = 10.f;
+
+  TimeskipRemaining = -1.f;
+  InternalTotalTimeskip = -1.f;
+  InternalTimeskipSpeed = 1.f;
+
+  SunCoords = FAzimuthialCoords();
+  MoonCoords = FAzimuthialCoords();
+
+  InternalRandomTickTotalCooldown = RandomTickCooldown;
+  WeatherTimeline = FTimeline();
+  PreviousWeather = nullptr;
+  WeatherParams = nullptr;
+  bBlendingWeather = 0;
+  PuddleAmountInternalSnap = 0.f;
 }
 
-void ASkySystem::SkipTime(float newTime)
+void ASkySystem::BeginPlay()
 {
-  if (newTime <= SimData.LocalTime) {
-    TimeskipRemaining = 24.f - (SimData.LocalTime - newTime);
-  }
-  else {
-    TimeskipRemaining = newTime - SimData.LocalTime;
+  Super::BeginPlay();
+
+  FOnTimelineFloat OnWeatherTimeline{};
+  OnWeatherTimeline.BindUFunction(this, "BlendWeather");
+  WeatherTimeline.AddInterpFloat(DefaultWeatherBlend, OnWeatherTimeline, FName("Blend"), FName("Alpha"));
+  FOnTimelineEvent OnTimelineEvent{};
+  OnTimelineEvent.BindUFunction(this, "OnWeatherBlendFin");
+  WeatherTimeline.SetTimelineFinishedFunc(OnTimelineEvent);
+
+  InternalRandomTickTotalCooldown = RandomTickCooldown;
+  WeatherParams = GetWorld()->GetParameterCollectionInstance(WeatherParameterCollection);
+
+  if (UGameplayStatics::GetPlayerCharacter(this, 0) == nullptr) // checking since technically no player character exists in main menu
+    return;
+  FAttachmentTransformRules rules = FAttachmentTransformRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, false);
+  RainParticles->AttachToComponent(UGameplayStatics::GetPlayerCharacter(this, 0)->GetRootComponent(), rules);
+  RainParticles->SetRelativeLocation(FVector(0, 0, 750));
+}
+
+void ASkySystem::Tick(float DeltaSeconds)
+{
+  Super::Tick(DeltaSeconds);
+
+  TickTime(DeltaSeconds);
+
+  TickWeather(DeltaSeconds);
+}
+
+// Begin In-Editor Updates ---
+
+void ASkySystem::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+  Super::PostEditChangeProperty(PropertyChangedEvent);
+
+  if (PropertyChangedEvent.MemberProperty->GetFName() == GET_MEMBER_NAME_CHECKED(ASkySystem, SimData)) {
+    if (!FDateTime::Validate(SimData.Year, SimData.Month, SimData.Day, 0, 0, 0, 0)) {
+      UE_LOG(LogSkySystem, Error, TEXT("Simulation Date is not valid! -> automatically set to possible date"));
+      SimData.Day = fmin(SimData.Day, FDateTime::DaysInMonth(SimData.Year, SimData.Month));
+    }
+    CalculatePlanetaryPositions();
+    UpdateLighting();
   }
 
-  TimeSkipInternal = TimeskipRemaining;
+  if (PropertyChangedEvent.Property->GetFName() == GET_MEMBER_NAME_CHECKED(ASkySystem, CurrentWeather)) {
+    if (GetWorld()) UpdateWeatherValues();
+  }
+}
+
+void ASkySystem::UpdateWeatherValues()
+{
+  WeatherParams = GetWorld()->GetParameterCollectionInstance(WeatherParameterCollection);
+  WeatherParams->SetScalarParameterValue("coverage", CurrentWeather->CloudCoverage);
+  WeatherParams->SetScalarParameterValue("precipitation", CurrentWeather->Percipitation);
+  WeatherParams->SetScalarParameterValue("PuddleAmount", CurrentWeather->bHasRain ? 0.9f : 0.f);
+
+  Atmosphere->SetMieAbsorptionScale(CurrentWeather->MieAbsorptionScale);
+
+  Fog->SetFogDensity(CurrentWeather->FogDensity);
+  Fog->SetVolumetricFogExtinctionScale(CurrentWeather->FogExtinction);
+}
+
+// End In-Editor Updates ---
+//
+// Begin Internal Weather Updates ---
+
+void ASkySystem::TickWeather(float deltaSeconds)
+{
+  float _Time;
+  WeatherParams->GetScalarParameterValue("Time", _Time);
+  WeatherParams->SetScalarParameterValue("Time", _Time + (deltaSeconds * InternalTimeskipSpeed));
+
+  if (bBlendingWeather == false) {
+    InternalRandomTickTotalCooldown -= deltaSeconds;
+    RndWeatherEvent();
+  }
+  WeatherTimeline.TickTimeline(deltaSeconds);
+}
+
+void ASkySystem::RndWeatherEvent()
+{
+  if (InternalRandomTickTotalCooldown <= 0.f && !DefaultWeatherPresets.IsEmpty()) {
+    InternalRandomTickTotalCooldown = RandomTickCooldown;
+
+    if (FMath::RandRange(0.0, 1.0) >= RandomWeatherChance) {
+      int32 randIndex = FMath::RandRange(0, DefaultWeatherPresets.Num() - 1);
+      ChangeWeather(DefaultWeatherPresets[randIndex]);
+    }
+  }
+}
+
+void ASkySystem::BlendWeather(float Value)
+{
+  WeatherParams->SetScalarParameterValue("coverage", FMath::Lerp(PreviousWeather->CloudCoverage, CurrentWeather->CloudCoverage, Value));
+  WeatherParams->SetScalarParameterValue("precipitation", FMath::Lerp(PreviousWeather->Percipitation, CurrentWeather->Percipitation, Value));
+  WeatherParams->SetScalarParameterValue("PuddleAmount", FMath::Lerp(PuddleAmountInternalSnap, CurrentWeather->bHasRain ? 0.9f : PreviousWeather->bHasRain ? 0.7f : 0.f, Value));
+
+  Atmosphere->SetMieAbsorptionScale(FMath::Lerp(PreviousWeather->MieAbsorptionScale, CurrentWeather->MieAbsorptionScale, Value * Value));
+
+  Fog->SetFogDensity(FMath::Lerp(PreviousWeather->FogDensity, CurrentWeather->FogDensity, Value * Value));
+  Fog->SetVolumetricFogExtinctionScale(FMath::Lerp(PreviousWeather->FogExtinction, CurrentWeather->FogExtinction, Value * Value));
+
+  RainParticles->SetVariableFloat(FName("RainAmount"), CurrentWeather->bHasRain ? Value : 1.f - Value);
+}
+
+void ASkySystem::OnWeatherBlendFin()
+{
+  bBlendingWeather = false;
+
+  WeatherParams->SetScalarParameterValue("coverage", CurrentWeather->CloudCoverage);
+  WeatherParams->SetScalarParameterValue("precipitation", CurrentWeather->Percipitation);
+  WeatherParams->SetScalarParameterValue("PuddleAmount", CurrentWeather->bHasRain ? 0.9f : PreviousWeather->bHasRain ? 0.7f : 0.f);
+
+  if (!CurrentWeather->bHasRain) RainParticles->Deactivate();
+}
+
+// End Internal Weather Updates ---
+//
+// Begin Internal Sky Updates ---
+
+void ASkySystem::TickTime(float DeltaSeconds)
+{
+  float TimeDelta = DeltaSeconds * SimulationSpeed * (1.f / 3600.f);
+  InternalTimeskipSpeed = 1.f;
+
+  if (GetWorldTimerManager().IsTimerActive(TimeSkipHandle)) {
+    float TimeSkipMul = (3600.f * InternalTotalTimeskip) / (TimeSkipDuration * SimulationSpeed);
+    const float EasingCorrection = 0.9f;
+    TimeSkipMul = TimeSkipMul / EasingCorrection;
+    float EasedTimeSkip = TimeSkipEase->GetFloatValue(GetWorldTimerManager().GetTimerElapsed(TimeSkipHandle) / TimeSkipDuration);
+    InternalTimeskipSpeed = FMath::Lerp(1.f, TimeSkipMul, EasedTimeSkip);
+  }
+
+  if (TimeskipRemaining > 0.f)
+    TimeskipRemaining = TimeskipRemaining - TimeDelta * InternalTimeskipSpeed;
+
+  ChangeTime(TimeDelta * (TimeskipRemaining <= 0.f ? 1.f : InternalTimeskipSpeed));
+}
+
+void ASkySystem::ChangeTime(float Amount)
+{
+  float newLocalTime = SimData.LocalTime + Amount;
+
+  UpdateSimulationTimeDate(newLocalTime);
+
+  SimData.LocalTime = Astro::Overflow(newLocalTime, 24.f);
+
+  OnTimeChanged.Broadcast(SimData.LocalTime);
+
+  CalculatePlanetaryPositions();
+  UpdateLighting();
+}
+
+void ASkySystem::UpdateSimulationTimeDate(float newTime)
+{
+  if (newTime >= 24.f)
+    SimData.Day += 1;
+
+  if (SimData.Day > FDateTime::DaysInMonth(SimData.Year, SimData.Month)) {
+    SimData.Day = 1;
+    SimData.Month += 1;
+    if (SimData.Month > 12) {
+      SimData.Month = 1;
+      SimData.Year = fminf(SimData.Year + 1, 2100);
+      // upper limit of 2100 since planetary calculations
+      // are only decently accurate for ca. 1900 - 2100
+    }
+  }
 }
 
 void ASkySystem::CalculatePlanetaryPositions()
@@ -247,86 +428,9 @@ void ASkySystem::UpdateLighting()
   // ----- End Lighting Optimization
 }
 
-void ASkySystem::ChangeTime(float Amount)
-{
-  float newLocalTime = SimData.LocalTime + Amount;
-
-  UpdateSimulationTimeDate(newLocalTime);
-
-  SimData.LocalTime = Astro::Overflow(newLocalTime, 24.f);
-
-  OnTimeChanged.Broadcast(SimData.LocalTime);
-
-  CalculatePlanetaryPositions();
-  UpdateLighting();
-}
-
-void ASkySystem::UpdateSimulationTimeDate(float newTime)
-{
-  if (newTime >= 24.f)
-    SimData.Day += 1;
-
-  if (SimData.Day > FDateTime::DaysInMonth(SimData.Year, SimData.Month)) {
-    SimData.Day = 1;
-    SimData.Month += 1;
-    if (SimData.Month > 12) {
-      SimData.Month = 1;
-      SimData.Year = fminf(SimData.Year + 1, 2100);
-      // upper limit of 2100 since planetary calculations
-      // are only decently accurate for ca. 1900 - 2100
-    }
-  }
-}
-
-void ASkySystem::RndWeatherEvent()
-{
-  if (RandomTickIntervalInternal <= 0.f && !DefaultWeatherPresets.IsEmpty()) {
-    RandomTickIntervalInternal = RandomTickInterval;
-
-    if (FMath::RandRange(0.0, 1.0) >= 0.0) {
-      int32 randIndex = FMath::RandRange(0, DefaultWeatherPresets.Num() - 1);
-      ChangeWeather(DefaultWeatherPresets[randIndex]);
-    }
-  }
-}
-
-void ASkySystem::OnWeatherBlendFin()
-{
-  bBlendingWeather = false;
-
-  WeatherParams->SetScalarParameterValue("coverage", CurrentWeather->CloudCoverage);
-  WeatherParams->SetScalarParameterValue("precipitation", CurrentWeather->Percipitation);
-  WeatherParams->SetScalarParameterValue("PuddleAmount", CurrentWeather->bHasRain ? 0.9f : PreviousWeather->bHasRain ? 0.7f : 0.f);
-
-  if (!CurrentWeather->bHasRain) RainParticles->Deactivate();
-}
-
-void ASkySystem::UpdateWeatherValues()
-{
-  WeatherParams = GetWorld()->GetParameterCollectionInstance(WeatherParameterCollection);
-  WeatherParams->SetScalarParameterValue("coverage", CurrentWeather->CloudCoverage);
-  WeatherParams->SetScalarParameterValue("precipitation", CurrentWeather->Percipitation);
-  WeatherParams->SetScalarParameterValue("PuddleAmount", CurrentWeather->bHasRain ? 0.9f : 0.f);
-
-  Atmosphere->SetMieAbsorptionScale(CurrentWeather->MieAbsorptionScale);
-
-  Fog->SetFogDensity(CurrentWeather->FogDensity);
-  Fog->SetVolumetricFogExtinctionScale(CurrentWeather->FogExtinction);
-}
-
-void ASkySystem::BlendWeather(float Value)
-{
-  WeatherParams->SetScalarParameterValue("coverage", FMath::Lerp(PreviousWeather->CloudCoverage, CurrentWeather->CloudCoverage, Value));
-  WeatherParams->SetScalarParameterValue("precipitation", FMath::Lerp(PreviousWeather->Percipitation, CurrentWeather->Percipitation, Value));
-  WeatherParams->SetScalarParameterValue("PuddleAmount", FMath::Lerp(PuddleAmountInternalSnap, CurrentWeather->bHasRain ? 0.9f : PreviousWeather->bHasRain ? 0.7f : 0.f, Value));
-
-  Atmosphere->SetMieAbsorptionScale(FMath::Lerp(PreviousWeather->MieAbsorptionScale, CurrentWeather->MieAbsorptionScale, Value * Value));
-
-  Fog->SetFogDensity(FMath::Lerp(PreviousWeather->FogDensity, CurrentWeather->FogDensity, Value * Value));
-  Fog->SetVolumetricFogExtinctionScale(FMath::Lerp(PreviousWeather->FogExtinction, CurrentWeather->FogExtinction, Value * Value));
-
-  RainParticles->SetVariableFloat(FName("RainAmount"), CurrentWeather->bHasRain ? Value : 1.f - Value);
-}
+// End Internal Sky Updates ---
+//
+// Begin External Callable Functions ---
 
 void ASkySystem::ChangeWeather(UWeatherPreset* newWeather)
 {
@@ -345,64 +449,17 @@ void ASkySystem::ChangeWeather(UWeatherPreset* newWeather)
 
 }
 
-void ASkySystem::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+void ASkySystem::SkipTime(float newTime)
 {
-  Super::PostEditChangeProperty(PropertyChangedEvent);
-
-  if (PropertyChangedEvent.MemberProperty->GetFName() == GET_MEMBER_NAME_CHECKED(ASkySystem, SimData)) {
-    if (!FDateTime::Validate(SimData.Year, SimData.Month, SimData.Day, 0, 0, 0, 0)) {
-      UE_LOG(LogSkySystem, Error, TEXT("Simulation Date is not valid! -> automatically set to possible date"));
-      SimData.Day = fmin(SimData.Day, FDateTime::DaysInMonth(SimData.Year, SimData.Month));
-    }
-    CalculatePlanetaryPositions();
-    UpdateLighting();
+  if (newTime <= SimData.LocalTime) {
+    TimeskipRemaining = 24.f - (SimData.LocalTime - newTime);
+  }
+  else {
+    TimeskipRemaining = newTime - SimData.LocalTime;
   }
 
-  if (PropertyChangedEvent.Property->GetFName() == GET_MEMBER_NAME_CHECKED(ASkySystem, CurrentWeather)) {
-    if (GetWorld()) UpdateWeatherValues();
-  }
+  InternalTotalTimeskip = TimeskipRemaining;
+  GetWorldTimerManager().SetTimer(TimeSkipHandle, TimeSkipDuration, FTimerManagerTimerParameters());
 }
 
-void ASkySystem::Tick(float DeltaSeconds)
-{
-  Super::Tick(DeltaSeconds);
-
-  float TSMul = TimeSkipEase->GetFloatValue(TimeskipRemaining / TimeSkipInternal);
-
-  float TimeDelta = DeltaSeconds * SimulationSpeed * (24.0 / 86400.0);
-  if (TimeskipRemaining > -0.1f)
-    TimeskipRemaining = TimeskipRemaining - TimeDelta * TSMul;
-
-  ChangeTime(TimeDelta * (TimeskipRemaining <= 0.f ? 1.f : TSMul));
-
-  float _Time;
-  WeatherParams->GetScalarParameterValue("Time", _Time);
-  WeatherParams->SetScalarParameterValue("Time", _Time + (DeltaSeconds * TSMul));
-
-  if (bBlendingWeather == false) {
-    RandomTickIntervalInternal -= DeltaSeconds;
-    RndWeatherEvent();
-  }
-  WeatherTimeline.TickTimeline(DeltaSeconds);
-}
-
-void ASkySystem::BeginPlay()
-{
-  Super::BeginPlay();
-
-  FOnTimelineFloat OnWeatherTimeline{};
-  OnWeatherTimeline.BindUFunction(this, "BlendWeather");
-  WeatherTimeline = FTimeline();
-  WeatherTimeline.AddInterpFloat(DefaultWeatherBlend, OnWeatherTimeline, FName("Blend"), FName("Alpha"));
-  FOnTimelineEvent OnTimelineEvent{};
-  OnTimelineEvent.BindUFunction(this, "OnWeatherBlendFin");
-  WeatherTimeline.SetTimelineFinishedFunc(OnTimelineEvent);
-
-  WeatherParams = GetWorld()->GetParameterCollectionInstance(WeatherParameterCollection);
-
-  if (UGameplayStatics::GetPlayerCharacter(this, 0) == nullptr)
-    return;
-  FAttachmentTransformRules rules = FAttachmentTransformRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, false);
-  RainParticles->AttachToComponent(UGameplayStatics::GetPlayerCharacter(this, 0)->GetRootComponent(), rules);
-  RainParticles->SetRelativeLocation(FVector(0, 0, 750));
-}
+// End External Callable Functions ---
