@@ -24,6 +24,8 @@ class UNiagaraComponent;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnTimeChangedDelegate, float);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnSunsetDelegate);
+
 
 USTRUCT()
 struct FLocationInfo
@@ -83,79 +85,107 @@ public:
   UFUNCTION()
   void SkipTime(float newTime);
 
+  UFUNCTION(BlueprintCallable)
+  void ChangeWeather(UWeatherPreset* newWeather);
+
   UFUNCTION(BlueprintCallable, BlueprintPure)
   float GetCurrentTime() const { return SimData.LocalTime; }
 
   bool IsSkipOnCooldown() const { return TimeskipRemaining > 0.f; }
 
-  UFUNCTION()
-  void BlendWeather(float Value);
-
-  UFUNCTION(BlueprintCallable)
-  void ChangeWeather(UWeatherPreset* newWeather);
-
-  bool IsWeatherReady() const { return (bBlendingWeather == 0) && (RandomTickIntervalInternal <= (RandomTickInterval - 30.f)); }
+  bool IsWeatherReady() const { return (bBlendingWeather == 0) && (InternalRandomTickTotalCooldown <= (RandomTickCooldown - 30.f)); }
 
 protected:
+  virtual void BeginPlay() override;
+
   virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent) override;
 
   virtual void Tick(float DeltaSeconds) override;
 
-  virtual void BeginPlay() override;
+private:
+  void TickTime(float DeltaSeconds);
+
+  void ChangeTime(float Amount);
+
+  void UpdateSimulationTimeDate(float newTime);
 
   void CalculatePlanetaryPositions();
 
   void UpdateLighting();
 
-  void ChangeTime(float Amount);
-
-private:
-  void UpdateSimulationTimeDate(float newTime);
+  void TickWeather(float deltaSeconds);
 
   void RndWeatherEvent();
+
+  void UpdateWeatherValues();
+
+  UFUNCTION()
+  void BlendWeather(float Value);
 
   UFUNCTION()
   void OnWeatherBlendFin();
 
-  void UpdateWeatherValues();
+  // End Functions ---
+  //
+  // Begin Members ---
 
 public:
   FOnTimeChangedDelegate OnTimeChanged;
 
+  UPROPERTY(BlueprintAssignable)
+  FOnSunsetDelegate OnSunset;
+
 protected:
+  /*Container for all time relevant information.*/
   UPROPERTY(EditAnywhere, Category = "Simulation")
   FLocationInfo SimData;
 
-  /* 1x -> Realtime, 60x -> 1s = 1min */
+  /*Realtime-Speed Multiplier for the internal Time-Simulation.
+  1x >> Realtime
+  60x >> 1sec = 1min
+  etc...*/
   UPROPERTY(EditAnywhere, Category = "Simulation", meta = (ClampMin = "0.0"))
   float SimulationSpeed;
 
-  UPROPERTY(EditAnywhere, Category = "Lighting", meta = (ClampMin = "0.0"))
+  /*The Intensity of SunIntensityFalloff at 1.*/
+  UPROPERTY(EditDefaultsOnly, Category = "Lighting", meta = (ClampMin = "0.0"))
   float SunLux;
 
+  /*Normalized Function for modulating sun intensity based on Sun altitude.*/
   UPROPERTY(EditDefaultsOnly, Category = "Lighting", AdvancedDisplay)
   TObjectPtr<UCurveFloat> SunIntensityFalloff;
 
-  UPROPERTY(EditDefaultsOnly, Category = "Lighting")
-  float FastForwardTimeMultiplier;
-
+  /*Interval in Seconds: How often a random weather event can happen. (Only acts as a "Tick". Event is decided by chance.)*/
   UPROPERTY(EditAnywhere, Category = "Weather")
-  float RandomTickInterval;
+  float RandomTickCooldown;
 
+  /*Chance to switch weather after RandomTickCooldown-Seconds have passed*/
+  UPROPERTY(EditAnywhere, Category = "Weather")
+  float RandomWeatherChance;
+
+  /*Holds information about the current Weather-State*/
   UPROPERTY(EditAnywhere, Category = "Weather")
   TObjectPtr<UWeatherPreset> CurrentWeather;
 
+  /*List of Weather Presets the Random Weather Event can use.*/
   UPROPERTY(EditDefaultsOnly, Category = "Weather", BlueprintReadOnly)
   TArray<UWeatherPreset*> DefaultWeatherPresets;
 
+  /*Fallback for a Function used to blend between Weather-States. (X: time, length - Y: Blend Alpha)*/
   UPROPERTY(EditDefaultsOnly, Category = "Weather", AdvancedDisplay)
   TObjectPtr<UCurveFloat> DefaultWeatherBlend;
 
+  /*MPC to get the world reference for. Used to write information to clouds and puddles.*/
   UPROPERTY(EditDefaultsOnly, Category = "Weather", AdvancedDisplay)
   UMaterialParameterCollection* WeatherParameterCollection;
 
+  /*Normalized Easing Function for Timeskips (eg. smooth blend-in & out)*/
   UPROPERTY(EditDefaultsOnly, Category = "Other")
   TObjectPtr<UCurveFloat> TimeSkipEase;
+
+  /*Defines how long the time-skipping interaction takes.*/
+  UPROPERTY(EditAnywhere, Category = "Other")
+  float TimeSkipDuration;
 
   // ----- Components Begin
   UPROPERTY(EditDefaultsOnly)
@@ -186,19 +216,19 @@ protected:
   TObjectPtr<UNiagaraComponent> RainParticles;
   // ----- Components End
 
-
 private:
-  UPROPERTY(VisibleAnywhere)
   float TimeskipRemaining;
+  float InternalTimeskipSpeed;
+  float InternalTotalTimeskip;
+  FTimerHandle TimeSkipHandle;
 
   FAzimuthialCoords SunCoords;
   FAzimuthialCoords MoonCoords;
 
-  float RandomTickIntervalInternal;
+  float InternalRandomTickTotalCooldown;
   FTimeline WeatherTimeline;
   UWeatherPreset* PreviousWeather;
   UMaterialParameterCollectionInstance* WeatherParams;
   uint8 bBlendingWeather : 1;
   float PuddleAmountInternalSnap;
-  float TimeSkipInternal;
 };
