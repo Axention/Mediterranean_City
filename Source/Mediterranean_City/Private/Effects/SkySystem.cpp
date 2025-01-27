@@ -205,6 +205,8 @@ void ASkySystem::BlendWeather(float Value)
   Fog->SetVolumetricFogExtinctionScale(FMath::Lerp(PreviousWeather->FogExtinction, CurrentWeather->FogExtinction, Value * Value));
 
   RainParticles->SetVariableFloat(FName("RainAmount"), CurrentWeather->bHasRain ? Value : 1.f - Value);
+
+  OnChangingWeather.Broadcast(Value, CurrentWeather->bHasRain);
 }
 
 void ASkySystem::OnWeatherBlendFin()

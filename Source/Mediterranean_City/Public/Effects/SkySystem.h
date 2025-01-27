@@ -26,6 +26,8 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FOnTimeChangedDelegate, float);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnSunsetDelegate);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnChangingWeather, float, BlendAlpha, bool, Raining);
+
 
 USTRUCT()
 struct FLocationInfo
@@ -134,6 +136,9 @@ public:
 
   UPROPERTY(BlueprintAssignable)
   FOnSunsetDelegate OnSunset;
+
+  UPROPERTY(BlueprintAssignable)
+  FOnChangingWeather OnChangingWeather;
 
 protected:
   /*Container for all time relevant information.*/
