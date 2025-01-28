@@ -93,6 +93,9 @@ public:
   UFUNCTION(BlueprintCallable, BlueprintPure)
   float GetCurrentTime() const { return SimData.LocalTime; }
 
+  UFUNCTION(BlueprintCallable, BlueprintPure)
+  float GetSunAltitude() const { return SunCoords.altitude; }
+
   bool IsSkipOnCooldown() const { return TimeskipRemaining > 0.f; }
 
   bool IsWeatherReady() const { return (bBlendingWeather == 0) && (InternalRandomTickTotalCooldown <= (RandomTickCooldown - 30.f)); }
