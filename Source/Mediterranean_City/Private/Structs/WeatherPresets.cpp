@@ -1,2 +1,0 @@
-
-#include "Structs/WeatherPresets.h"
