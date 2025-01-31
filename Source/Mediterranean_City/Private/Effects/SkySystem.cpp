@@ -162,6 +162,9 @@ void ASkySystem::UpdateWeatherValues()
 
   Fog->SetFogDensity(CurrentWeather->FogDensity);
   Fog->SetVolumetricFogExtinctionScale(CurrentWeather->FogExtinction);
+
+  IConsoleVariable* MaxCloudSamplesCVar = IConsoleManager::Get().FindConsoleVariable(TEXT("r.VolumetricCloud.ViewRaySampleMaxCount"));
+  if (MaxCloudSamplesCVar) MaxCloudSamplesCVar->Set(CurrentWeather->MaxSamples);
 }
 
 // End In-Editor Updates ---
@@ -205,6 +208,9 @@ void ASkySystem::BlendWeather(float Value)
   Fog->SetVolumetricFogExtinctionScale(FMath::Lerp(PreviousWeather->FogExtinction, CurrentWeather->FogExtinction, Value * Value));
 
   RainParticles->SetVariableFloat(FName("RainAmount"), CurrentWeather->bHasRain ? Value : 1.f - Value);
+
+  IConsoleVariable* MaxCloudSamplesCVar = IConsoleManager::Get().FindConsoleVariable(TEXT("r.VolumetricCloud.ViewRaySampleMaxCount"));
+  if (MaxCloudSamplesCVar) MaxCloudSamplesCVar->Set(FMath::Lerp(PreviousWeather->MaxSamples, CurrentWeather->MaxSamples, Value));
 
   OnChangingWeather.Broadcast(Value, CurrentWeather->bHasRain);
 }

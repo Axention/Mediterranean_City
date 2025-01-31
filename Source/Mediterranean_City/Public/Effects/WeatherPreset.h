@@ -38,4 +38,7 @@ public:
 
   UPROPERTY(EditAnywhere, meta = (ClampMin = "0.0", ClampMax = "1.0"))
   float MieAbsorptionScale;
+
+  UPROPERTY(EditAnywhere, meta = (ClampMin = "16.0", ClampMax = "256.0"), Category = "Optimizations")
+  float MaxSamples{ 256.f };
 };

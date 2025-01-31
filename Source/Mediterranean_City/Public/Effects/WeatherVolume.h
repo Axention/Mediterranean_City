@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 
-#include "Structs/WeatherPresets.h"
 #include "Effects/WeatherPreset.h"
 
 #include "WeatherVolume.generated.h"
