@@ -5,50 +5,48 @@
 
 #include "Core/Interactables/DisplayStand.h"
 
-#include "Kismet/KismetMathLibrary.h"
-
 #include "Components/BoxComponent.h"
 
 DEFINE_LOG_CATEGORY(LogCollectibles);
 
 ACollectable::ACollectable()
 {
-	PrimaryActorTick.bCanEverTick = false;
+  PrimaryActorTick.bCanEverTick = false;
 
-	DisplayStand = nullptr;
+  DisplayStand = nullptr;
 
-	Root = CreateDefaultSubobject<USceneComponent>(TEXT("Default Root"));
-	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Item"));
-	InteractionField = CreateDefaultSubobject<UBoxComponent>(TEXT("Interactable Field"));
+  Root = CreateDefaultSubobject<USceneComponent>(TEXT("Default Root"));
+  Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Item"));
+  InteractionField = CreateDefaultSubobject<UBoxComponent>(TEXT("Interactable Field"));
 
-	RootComponent = Root;
-	Mesh->SetupAttachment(RootComponent);
-	InteractionField->SetupAttachment(RootComponent);
+  RootComponent = Root;
+  Mesh->SetupAttachment(RootComponent);
+  InteractionField->SetupAttachment(RootComponent);
 
-	Root->Mobility = EComponentMobility::Static;
-	Mesh->Mobility = EComponentMobility::Static;
-	InteractionField->Mobility = EComponentMobility::Static;
+  Root->Mobility = EComponentMobility::Static;
+  Mesh->Mobility = EComponentMobility::Static;
+  InteractionField->Mobility = EComponentMobility::Static;
 
 }
 
 void ACollectable::Interact_Implementation(AAtmoCharacter* Character)
 {
-	if (!DisplayStand)
-		UE_LOG(LogCollectibles, Error, TEXT("No Displaystand referenced for %s!"), *GetDebugName(this));
+  if (!DisplayStand)
+    UE_LOG(LogCollectibles, Error, TEXT("No Displaystand referenced for %s!"), *GetDebugName(this));
 
-	FVector newLoc = DisplayStand->GetActorLocation() + DisplayStand->GetTransformModifier().GetLocation();
-	FRotator newRot = DisplayStand->GetActorRotation() + DisplayStand->GetTransformModifier().GetRotation().Rotator();
+  FVector newLoc = DisplayStand->GetActorLocation() + DisplayStand->GetTransformModifier().GetLocation();
+  FRotator newRot = DisplayStand->GetActorRotation() + DisplayStand->GetTransformModifier().GetRotation().Rotator();
 
-	Mesh->SetWorldLocationAndRotation(newLoc, newRot.Quaternion());
+  Mesh->SetWorldLocationAndRotation(newLoc, newRot.Quaternion());
 
-	InteractionField->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+  InteractionField->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-	OnInteractionDelegate.ExecuteIfBound();
+  OnInteractionDelegate.ExecuteIfBound();
 }
 
 void ACollectable::SetHighlight_Implementation(bool newState)
 {
-	Mesh->SetRenderCustomDepth(newState);
+  Mesh->SetRenderCustomDepth(newState);
 }
 
 

@@ -5,13 +5,9 @@
 
 #include "Utility/CaelumUtilities.h"
 #include "Core/Character/AtmoCharacter.h"
-#include "Core/Character/ActionAnimComponent.h"
 #include "Effects/SkySystem.h"
 
-#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
-
-#include "MotionWarpingComponent.h"
 
 
 ATimeskipBench::ATimeskipBench()
@@ -33,6 +29,13 @@ ATimeskipBench::ATimeskipBench()
 
 }
 
+void ATimeskipBench::BeginPlay()
+{
+  Super::BeginPlay();
+
+  OnTimeSkipInteraction.BindUFunction(UCaelumUtilities::GetTimeOfDaySystem(GetWorld()), FName("SkipTime"));
+}
+
 void ATimeskipBench::Interact_Implementation(AAtmoCharacter* Character)
 {
   ASkySystem* sky = UCaelumUtilities::GetTimeOfDaySystem(this);
@@ -40,8 +43,8 @@ void ATimeskipBench::Interact_Implementation(AAtmoCharacter* Character)
   case EMoveState::MS_Sitting:
     if (sky->IsSkipOnCooldown())
       return;
-    if (Character->GetTimeskipOffset() != (int8)sky->GetCurrentTime())
-      OnTimeSkipInteraction.ExecuteIfBound(Character->GetTimeskipOffset());
+    if (Character->GetTimeToSkipTo() != (int8)sky->GetCurrentTime())
+      OnTimeSkipInteraction.ExecuteIfBound(Character->GetTimeToSkipTo());
     break;
 
   default:
@@ -57,12 +60,3 @@ void ATimeskipBench::SetHighlight_Implementation(bool newState)
 {
   Mesh->SetRenderCustomDepth(newState);
 }
-
-void ATimeskipBench::BeginPlay()
-{
-  Super::BeginPlay();
-
-  OnTimeSkipInteraction.BindUFunction(UCaelumUtilities::GetTimeOfDaySystem(GetWorld()), FName("SkipTime"));
-}
-
-

@@ -39,22 +39,25 @@ namespace Astro
     return cosf(DegToRad(x));
   }
 
+  /*returns degree input wrapped into 0 - 360 range. (eg. 427.f -> 67.f)*/
   static float dWrap(float x)
   {
     return x - floor(x / 360.0) * 360.0;
   }
 
+  /*wraps "number" into "min to max" range.*/
   static float Overflow(float number, float min, float max)
   {
     return fmod(number - min, max - min + 1) + min;
   }
 
-  // Overflows x into range [0.0, exclusiveMax)
+  // wraps "x" into range [0.0, exclusiveMax[
   static float Overflow(float x, float exclusiveMax)
   {
     return x - floor(x / exclusiveMax) * exclusiveMax;
   }
 
+  /*Converts HourAngle, Declination, latitude & longitude into Azimuthal Coordinates: azimuth & altitude over horizon.*/
   static FAzimuthialCoords GetAzimuthialCoords(float HA, float Decl, float lat, float lon)
   {
     float x = dcos(HA) * dcos(Decl);

@@ -9,24 +9,29 @@
 
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
-class MEDITERRANEAN_CITY_API UInteractionComponent : public UActorComponent
+class UInteractionComponent : public UActorComponent
 {
   GENERATED_BODY()
 
 public:
   UInteractionComponent();
 
-  UFUNCTION(BlueprintCallable)
   void TryInteraction(FVector CameraPosition, FVector CameraForward);
 
   void SeekInteractible(FVector CamPos, FVector CamFwd);
 
   void ResetSeeking();
 
+  // End Functions ---
+  //
+  // Begin Members ---
+
 protected:
+  /*How far to trace for interactable objects*/
   UPROPERTY(EditDefaultsOnly)
   float MaxInteractionDistance;
 
+  /*Filter for Object Types to search for. (Defaults to "Interactables")*/
   UPROPERTY(EditAnywhere)
   TArray<TEnumAsByte<EObjectTypeQuery>> SearchObjectTypes;
 

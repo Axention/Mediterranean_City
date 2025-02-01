@@ -7,7 +7,6 @@
 
 #include "Utility/CaelumUtilities.h"
 #include "Kismet/KismetMathLibrary.h"
-#include "Kismet/KismetSystemLibrary.h"
 
 #include "Components/SphereComponent.h"
 
@@ -22,6 +21,12 @@ AWeatherVolume::AWeatherVolume()
 
   TriggerField = CreateDefaultSubobject<USphereComponent>(TEXT("Trigger"));
   TriggerField->SetupAttachment(RootComponent);
+}
+
+void AWeatherVolume::BeginPlay()
+{
+  TriggerField->OnComponentBeginOverlap.AddDynamic(this, &AWeatherVolume::OnEnterField);
+  TriggerField->OnComponentEndOverlap.AddDynamic(this, &AWeatherVolume::OnExitField);
 }
 
 void AWeatherVolume::OnEnterField(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyindex, bool bFromSweep, const FHitResult& SweepResult)
@@ -64,12 +69,6 @@ void AWeatherVolume::OnExitField(UPrimitiveComponent* OverlappedComp, AActor* Ot
     return;
 
   InteractionTarget->OnInteractionDelegate.Unbind();
-}
-
-void AWeatherVolume::BeginPlay()
-{
-  TriggerField->OnComponentBeginOverlap.AddDynamic(this, &AWeatherVolume::OnEnterField);
-  TriggerField->OnComponentEndOverlap.AddDynamic(this, &AWeatherVolume::OnExitField);
 }
 
 void AWeatherVolume::OnInteract()

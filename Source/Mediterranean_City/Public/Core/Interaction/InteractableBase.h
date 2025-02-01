@@ -16,5 +16,6 @@ class AInteractable : public AActor, public IInteractionInterface
 public:
   AInteractable();
 
+  /*Delegate called when an interaction in a child-class occurs.*/
   FOnInteractionDelegate OnInteractionDelegate;
 };

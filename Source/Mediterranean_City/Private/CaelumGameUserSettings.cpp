@@ -4,12 +4,6 @@
 #include "CaelumGameUserSettings.h"
 
 
-//UCaelumGameUserSettings::UCaelumGameUserSettings(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
-//{
-//  MusicVolume = 1.f;
-//  SFXVolume = 1.f;
-//}
-
 UCaelumGameUserSettings* UCaelumGameUserSettings::GetGameSettings()
 {
   return CastChecked<UCaelumGameUserSettings>(GetGameUserSettings());

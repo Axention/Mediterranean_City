@@ -11,7 +11,6 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogCollectibles, Log, Warning);
 
-
 class UBoxComponent;
 class ADisplayStand;
 
@@ -27,23 +26,23 @@ public:
 
   virtual void SetHighlight_Implementation(bool newState) override;
 
-protected:
-
-private:
-
-
-public:
+  // End Functions ---
+  //
+  // Begin Members ---
 
 protected:
   UPROPERTY(EditDefaultsOnly)
   TObjectPtr<USceneComponent> Root;
 
+  /*Static Mesh for this Collectable.*/
   UPROPERTY(EditDefaultsOnly)
   TObjectPtr<UStaticMeshComponent> Mesh;
 
+  /*Buffer Zone for Interaction Traces. Enables Interaction with the object even if not looking exactly at the meshes collision shape.*/
   UPROPERTY(EditDefaultsOnly)
   TObjectPtr<UBoxComponent> InteractionField;
 
+  /*Reference to a DisplayStand Actor. Used as the place to display the collectable after it has been picked up.*/
   UPROPERTY(EditInstanceOnly)
   TObjectPtr<ADisplayStand> DisplayStand;
 

@@ -5,20 +5,14 @@
 
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
-#include "GameFramework/CharacterMovementComponent.h"
 
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
 #include "EnhancedInputComponent.h"
 
-#include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
-#include "Kismet/GameplayStatics.h"
 #include "Utility/AstroMath.h"
 #include "Utility/CaelumUtilities.h"
-
-#include "Components/TimelineComponent.h"
-#include "Curves/CurveFloat.h"
 
 #include "Core/Interaction/InteractionComponent.h"
 #include "Core/Character/ActionAnimComponent.h"
@@ -32,9 +26,8 @@ AAtmoCharacter::AAtmoCharacter()
   PrimaryActorTick.bCanEverTick = true;
 
   AtmoBaseMappingContext = nullptr;
-  InteractionState = EInteractionState::IA_Idle;
   MoveState = EMoveState::MS_Idle;
-  TimeskipOffset = 12;
+  TimeToSkipTo = 12;
 
   CamBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("Camera Boom"));
   CamBoom->SetupAttachment(GetMesh(), "head");
@@ -49,6 +42,13 @@ AAtmoCharacter::AAtmoCharacter()
   MotionWarper = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("Motion Warping Component"));
 
   UIComponent = nullptr;
+}
+
+void AAtmoCharacter::BeginPlay()
+{
+  Super::BeginPlay();
+
+  UIComponent = GetComponentByClass<UPlayerUIComponent>();
 }
 
 void AAtmoCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -74,18 +74,16 @@ void AAtmoCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
     Input->BindAction(Actions["Interact"], ETriggerEvent::Triggered, this, &AAtmoCharacter::Interact);
 
-    // Begin BenchActions
+    // BenchActions
     Input->BindAction(BenchActions["StandUp"], ETriggerEvent::Triggered, this, &AAtmoCharacter::StandUp);
     Input->BindAction(BenchActions["SkipTime"], ETriggerEvent::Triggered, this, &AAtmoCharacter::Interact);
-    Input->BindAction(BenchActions["ChangeSkip"], ETriggerEvent::Triggered, this, &AAtmoCharacter::ChangeTimeOffset);
+    Input->BindAction(BenchActions["ChangeSkip"], ETriggerEvent::Triggered, this, &AAtmoCharacter::ChangeTimeToSkipTo);
   }
 
 }
 
 void AAtmoCharacter::Tick(float DeltaSeconds)
 {
-
-
   if (GetMesh()->GetAnimInstance()->IsAnyMontagePlaying()) {
     ClampRotation();
   }
@@ -95,6 +93,8 @@ void AAtmoCharacter::Tick(float DeltaSeconds)
   else
     IAComponent->ResetSeeking();
 }
+
+// Begin Actions ---
 
 void AAtmoCharacter::SitDown(const USceneComponent* Target)
 {
@@ -111,11 +111,22 @@ void AAtmoCharacter::SitDown(const USceneComponent* Target)
   UIComponent->ShowHelpUI();
 }
 
-void AAtmoCharacter::BeginPlay()
+void AAtmoCharacter::StandUp(const FInputActionValue& Value)
 {
-  Super::BeginPlay();
 
-  UIComponent = GetComponentByClass<UPlayerUIComponent>();
+  if (UCaelumUtilities::GetTimeOfDaySystem(this)->IsSkipOnCooldown())
+    return;
+
+  if (APlayerController* PlayerController = Cast<APlayerController>(Controller)) {
+    if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer())) {
+      Subsystem->RemoveMappingContext(BenchMappingContext);
+    }
+  }
+
+  if (GetMoveState() == EMoveState::MS_Sitting)
+    GetActionAnimComponent()->StandUp();
+
+  UIComponent->ToggleBenchUI();
 }
 
 void AAtmoCharacter::Move(const FInputActionValue& Value)
@@ -157,32 +168,18 @@ void AAtmoCharacter::Interact(const FInputActionValue& Value)
   IAComponent->TryInteraction(GetMesh()->GetSocketLocation(FName("head")), GetControlRotation().Vector());
 }
 
-void AAtmoCharacter::StandUp(const FInputActionValue& Value)
-{
-
-  if (UCaelumUtilities::GetTimeOfDaySystem(this)->IsSkipOnCooldown())
-    return;
-
-  if (APlayerController* PlayerController = Cast<APlayerController>(Controller)) {
-    if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer())) {
-      Subsystem->RemoveMappingContext(BenchMappingContext);
-    }
-  }
-
-  if (GetMoveState() == EMoveState::MS_Sitting)
-    GetActionAnimComponent()->StandUp();
-
-  UIComponent->ToggleBenchUI();
-}
-
-void AAtmoCharacter::ChangeTimeOffset(const FInputActionValue& Value)
+void AAtmoCharacter::ChangeTimeToSkipTo(const FInputActionValue& Value)
 {
   int8 val = std::clamp(Value.Get<float>() * 10.f, -1.f, 1.f);
-  TimeskipOffset += val;
-  TimeskipOffset = Astro::Overflow(TimeskipOffset, 24.f);
+  TimeToSkipTo += val;
+  TimeToSkipTo = Astro::Overflow(TimeToSkipTo, 24.f);
 
-  UIComponent->UpdateBenchUI(TimeskipOffset);
+  UIComponent->UpdateBenchUI(TimeToSkipTo);
 }
+
+// End Actions ---
+//
+// Begin Internal Update ---
 
 void AAtmoCharacter::ClampRotation()
 {
@@ -193,4 +190,4 @@ void AAtmoCharacter::ClampRotation()
   GetController()->SetControlRotation(rot);
 }
 
-
+// End Internal Update ---

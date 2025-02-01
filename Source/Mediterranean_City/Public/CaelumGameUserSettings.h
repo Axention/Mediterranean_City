@@ -6,9 +6,7 @@
 #include "GameFramework/GameUserSettings.h"
 #include "CaelumGameUserSettings.generated.h"
 
-/**
- *
- */
+
 UCLASS()
 class MEDITERRANEAN_CITY_API UCaelumGameUserSettings : public UGameUserSettings
 {

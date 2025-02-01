@@ -29,34 +29,44 @@ class AWeatherVolume : public AActor
 public:
   AWeatherVolume();
 
+protected:
+  virtual void BeginPlay() override;
+
+private:
   UFUNCTION()
   void OnEnterField(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyindex, bool bFromSweep, const FHitResult& SweepResult);
 
   UFUNCTION()
   void OnExitField(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyindex);
 
-protected:
-  virtual void BeginPlay() override;
-
   UFUNCTION()
   void OnInteract();
 
   bool SendWeatherChange();
 
+  // End Functions ---
+  //
+  // Begin Members ---
+
 protected:
+  /*When can this Volume trigger a Weather change.*/
   UPROPERTY(EditInstanceOnly)
   EChangeCondition ChangeCondition;
 
+  /*What weather to change to if condition is met.*/
   UPROPERTY(EditInstanceOnly, BlueprintReadOnly)
   UWeatherPreset* WeatherToChangeTo;
 
+  /*Zone to consider for interaction. (Only Player has to be in this zone. Targets can be outside.)*/
   UPROPERTY(EditDefaultsOnly)
   TObjectPtr<USphereComponent> TriggerField;
 
+  /*Timeframe during which the weather change can be triggered.*/
   UPROPERTY(EditInstanceOnly, meta = (EditCondition = "ChangeCondition == EChangeCondition::SpecifiedTimeframe", EditConditionHides))
   FFloatRange Timeframe;
 
-  UPROPERTY(EditInstanceOnly, meta = (EditCondition = "ChangeCondition == EChangeCondition::InteractionTriggered", EditConditionHides, MustImplement = "InteractionInterface"))
+  /*The Object which has to be interacted with while inside the zone to trigger the weather change.*/
+  UPROPERTY(EditInstanceOnly, meta = (EditCondition = "ChangeCondition == EChangeCondition::InteractionTriggered", EditConditionHides, MustImplement = "/Script/Mediterranean_City.InteractionInterface"))
   TObjectPtr<AInteractable> InteractionTarget;
 
 

@@ -19,7 +19,7 @@ class UInteractionInterface : public UInterface
 /**
  *
  */
-class MEDITERRANEAN_CITY_API IInteractionInterface
+class IInteractionInterface
 {
   GENERATED_BODY()
 

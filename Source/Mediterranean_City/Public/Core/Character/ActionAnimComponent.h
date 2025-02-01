@@ -9,7 +9,7 @@
 class AAtmoCharacter;
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
-class MEDITERRANEAN_CITY_API UActionAnimComponent : public UActorComponent
+class UActionAnimComponent : public UActorComponent
 {
   GENERATED_BODY()
 
@@ -17,23 +17,25 @@ public:
   UActionAnimComponent();
 
   void SitDown();
+
   void StandUp();
 
 protected:
   virtual void BeginPlay() override;
 
+private:
   UFUNCTION()
   void OnMontageBlendOut(UAnimMontage* Montage, bool interrupted);
 
-private:
-
-public:
+  // End Functions ---
+  //
+  // Begin Members ---
 
 protected:
-  UPROPERTY(EditDefaultsOnly)
+  UPROPERTY(EditDefaultsOnly, Category = "Montages")
   TObjectPtr<UAnimMontage> SitDownMontage;
 
-  UPROPERTY(EditDefaultsOnly)
+  UPROPERTY(EditDefaultsOnly, Category = "Montages")
   TObjectPtr<UAnimMontage> StandUpMontage;
 
 private:

@@ -27,24 +27,28 @@ public:
 protected:
   virtual void BeginPlay() override;
 
+  // End Functions ---
+  //
+  // Begin Functions ---
 
 public:
-  UPROPERTY()
+  /*Delegate called when sitting and interacting again.*/
   FOnSkipTimeDelegate OnTimeSkipInteraction;
 
 protected:
   UPROPERTY()
   TObjectPtr<USceneComponent> DefaultRoot;
 
+  /*The target to move to during the sit-down montage.*/
   UPROPERTY(EditDefaultsOnly)
   TObjectPtr<USceneComponent> WarpTarget;
 
+  /*Static Mesh of this Bench.*/
   UPROPERTY(EditDefaultsOnly)
   TObjectPtr<UStaticMeshComponent> Mesh;
 
+  /*Buffer Zone for Interaction traces.*/
   UPROPERTY(EditDefaultsOnly)
   TObjectPtr<UBoxComponent> InteractionZone;
 
-private:
-  FTimerHandle Timer;
 };
