@@ -82,6 +82,7 @@ ASkySystem::ASkySystem()
   DefaultWeatherPresets = {};
   DefaultWeatherBlend = nullptr;
   WeatherParameterCollection = nullptr;
+  PuddleFadeTime = 60.f;
 
   TimeSkipEase = nullptr;
   TimeSkipDuration = 10.f;
@@ -182,6 +183,10 @@ void ASkySystem::TickWeather(float deltaSeconds)
     RndWeatherEvent();
   }
   WeatherTimeline.TickTimeline(deltaSeconds);
+
+  if (GetWorldTimerManager().TimerExists(PuddleHandle)) {
+    WeatherParams->SetScalarParameterValue("PuddleAmount", FMath::Lerp(PuddleAmountInternalSnap, 0.f, GetWorldTimerManager().GetTimerElapsed(PuddleHandle) / PuddleFadeTime));
+  }
 }
 
 void ASkySystem::RndWeatherEvent()
@@ -224,6 +229,16 @@ void ASkySystem::OnWeatherBlendFin()
   WeatherParams->SetScalarParameterValue("PuddleAmount", CurrentWeather->bHasRain ? 0.9f : PreviousWeather->bHasRain ? 0.7f : 0.f);
 
   if (!CurrentWeather->bHasRain) RainParticles->Deactivate();
+
+  if (PreviousWeather->bHasRain) {
+    WeatherParams->GetScalarParameterValue("PuddleAmount", PuddleAmountInternalSnap);
+    GetWorldTimerManager().SetTimer(PuddleHandle, this, &ASkySystem::ResetPuddles, PuddleFadeTime, FTimerManagerTimerParameters());
+  }
+}
+
+void ASkySystem::ResetPuddles()
+{
+
 }
 
 // End Internal Weather Updates ---

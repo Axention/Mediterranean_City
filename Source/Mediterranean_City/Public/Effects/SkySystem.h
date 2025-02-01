@@ -187,6 +187,9 @@ protected:
   UPROPERTY(EditDefaultsOnly, Category = "Weather", AdvancedDisplay)
   UMaterialParameterCollection* WeatherParameterCollection;
 
+  UPROPERTY(EditDefaultsOnly, Category = "Weather")
+  float PuddleFadeTime;
+
   /*Normalized Easing Function for Timeskips (eg. smooth blend-in & out)*/
   UPROPERTY(EditDefaultsOnly, Category = "Other")
   TObjectPtr<UCurveFloat> TimeSkipEase;
@@ -239,4 +242,7 @@ private:
   UMaterialParameterCollectionInstance* WeatherParams;
   uint8 bBlendingWeather : 1;
   float PuddleAmountInternalSnap;
+
+  FTimerHandle PuddleHandle;
+  void ResetPuddles();
 };
