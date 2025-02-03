@@ -199,7 +199,7 @@ protected:
   float TimeSkipDuration;
 
   // ----- Components Begin
-  UPROPERTY(EditDefaultsOnly)
+  UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
   TObjectPtr<UPostProcessComponent> PostProcess;
 
   UPROPERTY(EditDefaultsOnly)
