@@ -7,10 +7,12 @@
 
 ADoorBase::ADoorBase()
 {
-  PrimaryActorTick.bCanEverTick = true;
+  PrimaryActorTick.bCanEverTick = false;
 
   DoorlockState = EDoorlock::Unlocked;
   bInvertLockedSide = false;
+  UnlockedFrom = 12.f;
+  UnlockedUntil = 18.f;
 
   Root = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Root"));
   RootComponent = Root;

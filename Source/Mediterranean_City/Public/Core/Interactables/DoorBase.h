@@ -48,11 +48,17 @@ protected:
   UPROPERTY(EditDefaultsOnly)
   UBoxComponent* TraceFallback;
 
-  UPROPERTY(EditAnywhere, BlueprintReadWrite)
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Locking")
   EDoorlock DoorlockState;
 
-  UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (EditCondition = "DoorlockState == EDoorlock::LockedOneSided", EditConditionHides))
+  UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (EditCondition = "DoorlockState == EDoorlock::LockedOneSided", EditConditionHides), Category = "Locking")
   bool bInvertLockedSide;
+
+  UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (EditCondition = "DoorlockState == EDoorlock::TimeLocked", EditConditionHides, ClampMin = "0.0", ClampMax = "24.0"), Category = "Locking")
+  float UnlockedFrom;
+
+  UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (EditCondition = "DoorlockState == EDoorlock::TimeLocked", EditConditionHides, ClampMin = "0.0", ClampMax = "24.0"), Category = "Locking")
+  float UnlockedUntil;
 
 #if WITH_EDITOR
   UArrowComponent* UnlockedSideMarker;
