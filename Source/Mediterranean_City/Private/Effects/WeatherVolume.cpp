@@ -53,7 +53,8 @@ void AWeatherVolume::OnEnterField(UPrimitiveComponent* OverlappedComp, AActor* O
   }
   case EChangeCondition::InteractionTriggered:
   {
-    InteractionTarget->OnInteractionDelegate.BindUFunction(this, FName("OnInteract"));
+    if (InteractionTarget != nullptr)
+      InteractionTarget->OnInteractionDelegate.BindUFunction(this, FName("OnInteract"));
     return;
     break;
   }
@@ -68,7 +69,8 @@ void AWeatherVolume::OnExitField(UPrimitiveComponent* OverlappedComp, AActor* Ot
   if (!OtherActor->ActorHasTag("Player"))
     return;
 
-  InteractionTarget->OnInteractionDelegate.Unbind();
+  if (InteractionTarget != nullptr)
+    InteractionTarget->OnInteractionDelegate.Unbind();
 }
 
 void AWeatherVolume::OnInteract()
