@@ -261,7 +261,9 @@ void ASkySystem::TickTime(float DeltaSeconds)
   if (TimeskipRemaining > 0.f)
     TimeskipRemaining = TimeskipRemaining - TimeDelta * InternalTimeskipSpeed;
 
-  ChangeTime(TimeDelta * (TimeskipRemaining <= 0.f ? 1.f : InternalTimeskipSpeed));
+  InternalTimeMultiplier = TimeskipRemaining <= 0.f ? 1.f : InternalTimeskipSpeed;
+
+  ChangeTime(TimeDelta * InternalTimeMultiplier);
 }
 
 void ASkySystem::ChangeTime(float Amount)
@@ -421,8 +423,8 @@ void ASkySystem::UpdateLighting()
     Sun->bCastCloudShadows = false;
     Sun->MarkRenderStateDirty();
 
+    Sunset();
     OnSunset.Broadcast();
-
   }
   else if (SunCoords.altitude >= -2.0 && Sun->CastDynamicShadows == false) {
     Sun->CastDynamicShadows = true;
@@ -434,6 +436,9 @@ void ASkySystem::UpdateLighting()
     Moon->LightingChannels.bChannel0 = false;
     Moon->bCastCloudShadows = false;
     Moon->MarkRenderStateDirty();
+
+    Sunrise();
+    OnSunrise.Broadcast();
   }
 
   if (MoonCoords.altitude < -2.0 && Moon->CastDynamicShadows == true) {

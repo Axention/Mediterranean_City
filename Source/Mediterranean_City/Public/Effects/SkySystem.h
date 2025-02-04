@@ -25,6 +25,7 @@ class UNiagaraComponent;
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnTimeChangedDelegate, float);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnSunsetDelegate);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnSunriseDelegate);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnChangingWeather, float, BlendAlpha, bool, Raining);
 
@@ -107,6 +108,12 @@ protected:
 
   virtual void Tick(float DeltaSeconds) override;
 
+  UFUNCTION(BlueprintImplementableEvent)
+  void Sunrise();
+
+  UFUNCTION(BlueprintImplementableEvent)
+  void Sunset();
+
 private:
   void TickTime(float DeltaSeconds);
 
@@ -139,6 +146,9 @@ public:
 
   UPROPERTY(BlueprintAssignable)
   FOnSunsetDelegate OnSunset;
+
+  UPROPERTY(BlueprintAssignable)
+  FOnSunriseDelegate OnSunrise;
 
   UPROPERTY(BlueprintAssignable)
   FOnChangingWeather OnChangingWeather;
@@ -231,6 +241,7 @@ private:
   float TimeskipRemaining;
   float InternalTimeskipSpeed;
   float InternalTotalTimeskip;
+  float InternalTimeMultiplier;
   FTimerHandle TimeSkipHandle;
 
   FAzimuthialCoords SunCoords;

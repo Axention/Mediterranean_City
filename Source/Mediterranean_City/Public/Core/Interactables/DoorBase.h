@@ -17,7 +17,7 @@ enum class EDoorlock : uint8
   Unlocked,
   TimeLocked UMETA(ToolTip = "Will automatically open during given timeframe."),
   LockedOneSided UMETA(DisplayName = "one-sided Lock"),
-  TimelockedHidden UMETA(DisplayName = "Secret/Hidden & Timelocked"),
+  TimelockedHidden UMETA(DisplayName = "Night & Lantern Secret"),
   KeyLocked UMETA(Hidden)
 };
 
