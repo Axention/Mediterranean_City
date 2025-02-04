@@ -255,6 +255,7 @@ private:
   UMaterialParameterCollectionInstance* WeatherParams;
   uint8 bBlendingWeather : 1;
   float PuddleAmountInternalSnap;
+  float InternalWetnessSnap;
 
   FTimerHandle PuddleHandle;
   void ResetPuddles();

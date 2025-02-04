@@ -193,7 +193,9 @@ void ASkySystem::TickWeather(float deltaSeconds)
   WeatherTimeline.TickTimeline(deltaSeconds);
 
   if (GetWorldTimerManager().TimerExists(PuddleHandle)) {
-    WeatherParams->SetScalarParameterValue("PuddleAmount", FMath::Lerp(PuddleAmountInternalSnap, 0.f, GetWorldTimerManager().GetTimerElapsed(PuddleHandle) / PuddleFadeTime));
+    float Alpha = GetWorldTimerManager().GetTimerElapsed(PuddleHandle) / PuddleFadeTime;
+    WeatherParams->SetScalarParameterValue("PuddleAmount", FMath::Lerp(PuddleAmountInternalSnap, 0.f, Alpha));
+    WeatherParams->SetScalarParameterValue("Wetness", FMath::Lerp(InternalWetnessSnap, 0.f, FMath::Pow(Alpha, 1.5)));
   }
 }
 
@@ -214,6 +216,7 @@ void ASkySystem::BlendWeather(float Value)
   WeatherParams->SetScalarParameterValue("coverage", FMath::Lerp(PreviousWeather->CloudCoverage, CurrentWeather->CloudCoverage, Value));
   WeatherParams->SetScalarParameterValue("precipitation", FMath::Lerp(PreviousWeather->Percipitation, CurrentWeather->Percipitation, Value));
   WeatherParams->SetScalarParameterValue("PuddleAmount", FMath::Lerp(PuddleAmountInternalSnap, CurrentWeather->bHasRain ? 0.9f : PreviousWeather->bHasRain ? 0.7f : 0.f, Value));
+  WeatherParams->SetScalarParameterValue("Wetness", FMath::Lerp(InternalWetnessSnap, CurrentWeather->bHasRain ? 1.f : PreviousWeather->bHasRain ? 0.5f : 0.f, FMath::Pow(Value, 3.0)));
 
   Atmosphere->SetMieAbsorptionScale(FMath::Lerp(PreviousWeather->MieAbsorptionScale, CurrentWeather->MieAbsorptionScale, Value * Value));
 
@@ -240,6 +243,7 @@ void ASkySystem::OnWeatherBlendFin()
 
   if (PreviousWeather->bHasRain) {
     WeatherParams->GetScalarParameterValue("PuddleAmount", PuddleAmountInternalSnap);
+    WeatherParams->GetScalarParameterValue("Wetness", InternalWetnessSnap);
     GetWorldTimerManager().SetTimer(PuddleHandle, this, &ASkySystem::ResetPuddles, PuddleFadeTime, FTimerManagerTimerParameters());
   }
 }
@@ -477,6 +481,7 @@ void ASkySystem::ChangeWeather(UWeatherPreset* newWeather)
   CurrentWeather = newWeather;
 
   WeatherParams->GetScalarParameterValue("PuddleAmount", PuddleAmountInternalSnap);
+  WeatherParams->GetScalarParameterValue("Wetness", InternalWetnessSnap);
 
   WeatherTimeline.SetFloatCurve(CurrentWeather->BlendCurve, FName("Alpha"));
   WeatherTimeline.PlayFromStart();
