@@ -107,6 +107,8 @@ void AAtmoCharacter::SitDown(const USceneComponent* Target)
   GetMotionWarper()->AddOrUpdateWarpTargetFromComponent(FName("SeatTarget"), Target, NAME_None, false);
   GetActionAnimComponent()->SitDown();
 
+  TimeToSkipTo = FMath::TruncToInt(UCaelumUtilities::GetTimeOfDaySystem(this)->GetCurrentTime()) + 1;
+
   UIComponent->ToggleBenchUI();
   UIComponent->ShowHelpUI();
 }
@@ -170,6 +172,9 @@ void AAtmoCharacter::Interact(const FInputActionValue& Value)
 
 void AAtmoCharacter::ChangeTimeToSkipTo(const FInputActionValue& Value)
 {
+  if (UCaelumUtilities::GetTimeOfDaySystem(this)->IsSkipOnCooldown())
+    return;
+
   int8 val = std::clamp(Value.Get<float>() * 10.f, -1.f, 1.f);
   TimeToSkipTo += val;
   TimeToSkipTo = Astro::Overflow(TimeToSkipTo, 24.f);
