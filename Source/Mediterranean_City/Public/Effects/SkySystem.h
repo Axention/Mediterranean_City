@@ -108,6 +108,8 @@ protected:
 
   virtual void Tick(float DeltaSeconds) override;
 
+  virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
   UFUNCTION(BlueprintImplementableEvent)
   void Sunrise();
 

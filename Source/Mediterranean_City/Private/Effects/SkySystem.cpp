@@ -132,6 +132,14 @@ void ASkySystem::Tick(float DeltaSeconds)
   TickWeather(DeltaSeconds);
 }
 
+void ASkySystem::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+  IConsoleVariable* MaxCloudSamplesCVar = IConsoleManager::Get().FindConsoleVariable(TEXT("r.VolumetricCloud.ViewRaySampleMaxCount"));
+  if (MaxCloudSamplesCVar) MaxCloudSamplesCVar->Set(256.f);
+
+  Super::EndPlay(EndPlayReason);
+}
+
 // Begin In-Editor Updates ---
 
 void ASkySystem::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
