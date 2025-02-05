@@ -13,7 +13,7 @@
 DECLARE_LOG_CATEGORY_EXTERN(LogSkySystem, Log, All);
 
 class UPostProcessComponent;
-class USkyLightComponent;
+class UCaelumSkyLightComponent;
 class USkyAtmosphereComponent;
 class UVolumetricCloudComponent;
 class UDirectionalLightComponent;
@@ -215,7 +215,7 @@ protected:
   TObjectPtr<UPostProcessComponent> PostProcess;
 
   UPROPERTY(EditDefaultsOnly)
-  TObjectPtr<USkyLightComponent> SkyLight;
+  TObjectPtr<UCaelumSkyLightComponent> SkyLight;
 
   UPROPERTY(EditDefaultsOnly)
   TObjectPtr<UDirectionalLightComponent> Sun;

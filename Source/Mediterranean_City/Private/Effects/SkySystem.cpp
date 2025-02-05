@@ -5,7 +5,7 @@
 
 #include "Components/PostProcessComponent.h"
 #include "Components/DirectionalLightComponent.h"
-#include "Components/SkyLightComponent.h"
+#include "EngineExtension/CaelumSkyLightComponent.h"
 #include "Components/SkyAtmosphereComponent.h"
 #include "Components/ExponentialHeightFogComponent.h"
 #include "Components/VolumetricCloudComponent.h"
@@ -52,7 +52,7 @@ ASkySystem::ASkySystem()
   Moon->ForwardShadingPriority = 1;
   Moon->AtmosphereSunLightIndex = 1;
 
-  SkyLight = CreateDefaultSubobject<USkyLightComponent>(TEXT("Skylight"));
+  SkyLight = CreateDefaultSubobject<UCaelumSkyLightComponent>(TEXT("Skylight"));
   SkyLight->SetupAttachment(RootComponent);
 
   VolumetricClouds = CreateDefaultSubobject<UVolumetricCloudComponent>(TEXT("Clouds"));
@@ -466,6 +466,8 @@ void ASkySystem::UpdateLighting()
     Moon->MarkRenderStateDirty();
   }
   // ----- End Lighting Optimization
+
+  SkyLight->UpdateLighting(SunCoords.altitude);
 }
 
 // End Internal Sky Updates ---
