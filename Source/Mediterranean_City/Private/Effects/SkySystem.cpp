@@ -100,6 +100,8 @@ ASkySystem::ASkySystem()
   WeatherParams = nullptr;
   bBlendingWeather = 0;
   PuddleAmountInternalSnap = 0.f;
+
+  bIsNight = 0;
 }
 
 void ASkySystem::BeginPlay()
@@ -124,6 +126,8 @@ void ASkySystem::BeginPlay()
   UpdateWeatherValues();
   RainParticles->SetVariableFloat(FName("RainAmount"), CurrentWeather->bHasRain ? 1.f : 0.f);
   if (CurrentWeather->bHasRain) RainParticles->Activate();
+
+  UpdateLighting();
 }
 
 void ASkySystem::Tick(float DeltaSeconds)
@@ -441,6 +445,7 @@ void ASkySystem::UpdateLighting()
 
     Sunset();
     OnSunset.Broadcast();
+    bIsNight = 1;
   }
   else if (SunCoords.altitude >= -2.0 && Sun->CastDynamicShadows == false) {
     Sun->CastDynamicShadows = true;
@@ -455,6 +460,7 @@ void ASkySystem::UpdateLighting()
 
     Sunrise();
     OnSunrise.Broadcast();
+    bIsNight = 0;
   }
 
   if (MoonCoords.altitude < -2.0 && Moon->CastDynamicShadows == true) {

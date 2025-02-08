@@ -100,6 +100,9 @@ public:
   UFUNCTION(BlueprintCallable, BlueprintPure)
   const UWeatherPreset* GetCurrentWeather() const { return CurrentWeather; }
 
+  UFUNCTION(BlueprintCallable, BlueprintPure)
+  bool IsNighttime() const { return bIsNight == 1; }
+
   bool IsSkipOnCooldown() const { return TimeskipRemaining > 0.f; }
 
   bool IsWeatherReady() const { return (bBlendingWeather == 0) && (InternalRandomTickTotalCooldown <= (RandomTickCooldown - 30.f)); }
@@ -262,4 +265,6 @@ private:
 
   FTimerHandle PuddleHandle;
   void ResetPuddles();
+
+  uint8 bIsNight : 1;
 };
