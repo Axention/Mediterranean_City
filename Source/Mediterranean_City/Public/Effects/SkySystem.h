@@ -97,6 +97,9 @@ public:
   UFUNCTION(BlueprintCallable, BlueprintPure)
   float GetSunAltitude() const { return SunCoords.altitude; }
 
+  UFUNCTION(BlueprintCallable, BlueprintPure)
+  const UWeatherPreset* GetCurrentWeather() const { return CurrentWeather; }
+
   bool IsSkipOnCooldown() const { return TimeskipRemaining > 0.f; }
 
   bool IsWeatherReady() const { return (bBlendingWeather == 0) && (InternalRandomTickTotalCooldown <= (RandomTickCooldown - 30.f)); }

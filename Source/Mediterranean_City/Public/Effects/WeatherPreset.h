@@ -29,7 +29,7 @@ public:
   float Percipitation;
 
   /*Enables Rain Effects & Puddles*/
-  UPROPERTY(EditAnywhere)
+  UPROPERTY(EditAnywhere, BlueprintReadOnly)
   uint8 bHasRain : 1;
 
   UPROPERTY(EditAnywhere, meta = (ClampMin = "0.0", ClampMax = "1.0"))

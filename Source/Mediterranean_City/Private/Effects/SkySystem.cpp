@@ -114,13 +114,16 @@ void ASkySystem::BeginPlay()
   WeatherTimeline.SetTimelineFinishedFunc(OnTimelineEvent);
 
   InternalRandomTickTotalCooldown = RandomTickCooldown;
-  WeatherParams = GetWorld()->GetParameterCollectionInstance(WeatherParameterCollection);
 
   if (UGameplayStatics::GetPlayerCharacter(this, 0) == nullptr) // checking since technically no player character exists in main menu
     return;
   FAttachmentTransformRules rules = FAttachmentTransformRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, false);
   RainParticles->AttachToComponent(UGameplayStatics::GetPlayerCharacter(this, 0)->GetRootComponent(), rules);
   RainParticles->SetRelativeLocation(FVector(0, 0, 750));
+
+  UpdateWeatherValues();
+  RainParticles->SetVariableFloat(FName("RainAmount"), CurrentWeather->bHasRain ? 1.f : 0.f);
+  if (CurrentWeather->bHasRain) RainParticles->Activate();
 }
 
 void ASkySystem::Tick(float DeltaSeconds)
@@ -166,6 +169,7 @@ void ASkySystem::UpdateWeatherValues()
   WeatherParams->SetScalarParameterValue("coverage", CurrentWeather->CloudCoverage);
   WeatherParams->SetScalarParameterValue("precipitation", CurrentWeather->Percipitation);
   WeatherParams->SetScalarParameterValue("PuddleAmount", CurrentWeather->bHasRain ? 0.9f : 0.f);
+  WeatherParams->SetScalarParameterValue("Wetness", CurrentWeather->bHasRain ? 1.f : 0.f);
 
   Atmosphere->SetMieAbsorptionScale(CurrentWeather->MieAbsorptionScale);
 
