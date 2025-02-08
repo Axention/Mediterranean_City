@@ -27,6 +27,8 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FOnTimeChangedDelegate, float);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnSunsetDelegate);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnSunriseDelegate);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHourChangedDelegate, int, newHour);
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnChangingWeather, float, BlendAlpha, bool, Raining);
 
 
@@ -159,6 +161,9 @@ public:
   FOnSunriseDelegate OnSunrise;
 
   UPROPERTY(BlueprintAssignable)
+  FOnHourChangedDelegate OnHourChanged;
+
+  UPROPERTY(BlueprintAssignable)
   FOnChangingWeather OnChangingWeather;
 
 protected:
@@ -267,4 +272,7 @@ private:
   void ResetPuddles();
 
   uint8 bIsNight : 1;
+
+  uint8 lastHour;
+  uint8 currentHour;
 };

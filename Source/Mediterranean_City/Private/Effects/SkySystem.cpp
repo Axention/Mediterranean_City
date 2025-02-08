@@ -102,6 +102,9 @@ ASkySystem::ASkySystem()
   PuddleAmountInternalSnap = 0.f;
 
   bIsNight = 0;
+
+  currentHour = 0;
+  lastHour = 0;
 }
 
 void ASkySystem::BeginPlay()
@@ -128,6 +131,9 @@ void ASkySystem::BeginPlay()
   if (CurrentWeather->bHasRain) RainParticles->Activate();
 
   UpdateLighting();
+
+  currentHour = FMath::TruncToInt(SimData.LocalTime);
+  lastHour = currentHour;
 }
 
 void ASkySystem::Tick(float DeltaSeconds)
@@ -295,6 +301,12 @@ void ASkySystem::ChangeTime(float Amount)
   SimData.LocalTime = Astro::Overflow(newLocalTime, 24.f);
 
   OnTimeChanged.Broadcast(SimData.LocalTime);
+
+  currentHour = FMath::TruncToInt(SimData.LocalTime);
+  if (currentHour != lastHour) {
+    lastHour = currentHour;
+    OnHourChanged.Broadcast(currentHour);
+  }
 
   CalculatePlanetaryPositions();
   UpdateLighting();
