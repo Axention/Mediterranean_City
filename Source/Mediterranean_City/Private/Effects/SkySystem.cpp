@@ -126,6 +126,7 @@ void ASkySystem::BeginPlay()
   RainParticles->AttachToComponent(UGameplayStatics::GetPlayerCharacter(this, 0)->GetRootComponent(), rules);
   RainParticles->SetRelativeLocation(FVector(0, 0, 750));
 
+  WeatherParams = GetWorld()->GetParameterCollectionInstance(WeatherParameterCollection);
   UpdateWeatherValues();
   RainParticles->SetVariableFloat(FName("RainAmount"), CurrentWeather->bHasRain ? 1.f : 0.f);
   if (CurrentWeather->bHasRain) RainParticles->Activate();
@@ -202,8 +203,10 @@ void ASkySystem::UpdateWeatherValues()
 void ASkySystem::TickWeather(float deltaSeconds)
 {
   float _Time;
-  WeatherParams->GetScalarParameterValue("Time", _Time);
-  WeatherParams->SetScalarParameterValue("Time", _Time + (deltaSeconds * InternalTimeskipSpeed));
+  if (WeatherParams) {
+    WeatherParams->GetScalarParameterValue("Time", _Time);
+    WeatherParams->SetScalarParameterValue("Time", _Time + (deltaSeconds * InternalTimeskipSpeed));
+  }
 
   if (bBlendingWeather == false) {
     InternalRandomTickTotalCooldown -= deltaSeconds;
