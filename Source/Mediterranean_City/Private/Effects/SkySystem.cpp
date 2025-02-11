@@ -181,6 +181,11 @@ void ASkySystem::UpdateWeatherValues()
   WeatherParams->SetScalarParameterValue("PuddleAmount", CurrentWeather->bHasRain ? 0.9f : 0.f);
   WeatherParams->SetScalarParameterValue("Wetness", CurrentWeather->bHasRain ? 1.f : 0.f);
 
+  WeatherParameterCollection->ScalarParameters[0].DefaultValue = CurrentWeather->CloudCoverage;
+  WeatherParameterCollection->ScalarParameters[1].DefaultValue = CurrentWeather->Percipitation;
+  WeatherParameterCollection->ScalarParameters[2].DefaultValue = CurrentWeather->bHasRain ? 0.9f : 0.f;
+  WeatherParameterCollection->ScalarParameters[4].DefaultValue = CurrentWeather->bHasRain ? 1.f : 0.f;
+
   Atmosphere->SetMieAbsorptionScale(CurrentWeather->MieAbsorptionScale);
 
   Fog->SetFogDensity(CurrentWeather->FogDensity);
@@ -277,7 +282,7 @@ void ASkySystem::TickTime(float DeltaSeconds)
   InternalTimeskipSpeed = 1.f;
 
   if (GetWorldTimerManager().IsTimerActive(TimeSkipHandle)) {
-    float TimeSkipMul = (3600.f * InternalTotalTimeskip) / (TimeSkipDuration * SimulationSpeed);
+    float TimeSkipMul = (3600.f * InternalTotalTimeskip) / (((TimeSkipDuration / 3.42f) + 3.f) * SimulationSpeed);
     const float EasingCorrection = 0.9f;
     TimeSkipMul = TimeSkipMul / EasingCorrection;
     float EasedTimeSkip = TimeSkipEase->GetFloatValue(GetWorldTimerManager().GetTimerElapsed(TimeSkipHandle) / TimeSkipDuration);
