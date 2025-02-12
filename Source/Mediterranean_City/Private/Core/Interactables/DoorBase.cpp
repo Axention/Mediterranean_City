@@ -34,11 +34,11 @@ ADoorBase::ADoorBase()
 #endif // WITH_EDITOR
 }
 
+#if WITH_EDITOR
 void ADoorBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
   Super::PostEditChangeProperty(PropertyChangedEvent);
 
-#if WITH_EDITOR
   if (DoorlockState == EDoorlock::LockedOneSided) {
     UnlockedSideMarker->SetVisibility(true);
     UnlockedSideMarker->SetRelativeRotation(FRotator(0, bInvertLockedSide ? 90 : 270, 0));
@@ -46,8 +46,8 @@ void ADoorBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEve
   else {
     UnlockedSideMarker->SetVisibility(false);
   }
-#endif // WITH_EDITOR
 }
+#endif // WITH_EDITOR
 
 void ADoorBase::BeginPlay()
 {
