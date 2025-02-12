@@ -112,7 +112,11 @@ public:
 protected:
   virtual void BeginPlay() override;
 
+  void SetupWeather();
+
+#if WITH_EDITOR
   virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
 
   virtual void Tick(float DeltaSeconds) override;
 

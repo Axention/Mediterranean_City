@@ -111,6 +111,16 @@ void ASkySystem::BeginPlay()
 {
   Super::BeginPlay();
 
+  SetupWeather();
+
+  UpdateLighting();
+
+  currentHour = FMath::TruncToInt(SimData.LocalTime);
+  lastHour = currentHour;
+}
+
+void ASkySystem::SetupWeather()
+{
   FOnTimelineFloat OnWeatherTimeline{};
   OnWeatherTimeline.BindUFunction(this, "BlendWeather");
   WeatherTimeline.AddInterpFloat(DefaultWeatherBlend, OnWeatherTimeline, FName("Blend"), FName("Alpha"));
@@ -120,21 +130,18 @@ void ASkySystem::BeginPlay()
 
   InternalRandomTickTotalCooldown = RandomTickCooldown;
 
-  if (UGameplayStatics::GetPlayerCharacter(this, 0) == nullptr) // checking since technically no player character exists in main menu
-    return;
-  FAttachmentTransformRules rules = FAttachmentTransformRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, false);
-  RainParticles->AttachToComponent(UGameplayStatics::GetPlayerCharacter(this, 0)->GetRootComponent(), rules);
-  RainParticles->SetRelativeLocation(FVector(0, 0, 750));
+  if (UGameplayStatics::GetPlayerCharacter(this, 0) != nullptr) {
+    FAttachmentTransformRules rules = FAttachmentTransformRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, false);
+    RainParticles->AttachToComponent(UGameplayStatics::GetPlayerCharacter(this, 0)->GetRootComponent(), rules);
+    RainParticles->SetRelativeLocation(FVector(0, 0, 750));
+
+    RainParticles->SetVariableFloat(FName("RainAmount"), CurrentWeather->bHasRain ? 1.f : 0.f);
+    if (CurrentWeather->bHasRain) RainParticles->Activate();
+  }
+
 
   WeatherParams = GetWorld()->GetParameterCollectionInstance(WeatherParameterCollection);
   UpdateWeatherValues();
-  RainParticles->SetVariableFloat(FName("RainAmount"), CurrentWeather->bHasRain ? 1.f : 0.f);
-  if (CurrentWeather->bHasRain) RainParticles->Activate();
-
-  UpdateLighting();
-
-  currentHour = FMath::TruncToInt(SimData.LocalTime);
-  lastHour = currentHour;
 }
 
 void ASkySystem::Tick(float DeltaSeconds)
@@ -155,7 +162,7 @@ void ASkySystem::EndPlay(const EEndPlayReason::Type EndPlayReason)
 }
 
 // Begin In-Editor Updates ---
-
+#if WITH_EDITOR
 void ASkySystem::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
   Super::PostEditChangeProperty(PropertyChangedEvent);
@@ -173,6 +180,7 @@ void ASkySystem::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEv
     if (GetWorld()) UpdateWeatherValues();
   }
 }
+#endif
 
 void ASkySystem::UpdateWeatherValues()
 {
