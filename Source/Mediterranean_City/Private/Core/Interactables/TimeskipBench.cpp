@@ -50,7 +50,7 @@ void ATimeskipBench::Interact_Implementation(AAtmoCharacter* Character)
   default:
     if (UKismetMathLibrary::Dot_VectorVector(Character->GetActorForwardVector(), GetActorForwardVector()) > -0.25)
       return;
-    Character->SitDown(WarpTarget);
+    Character->SitDown(WarpTarget, false);
     OnInteractionDelegate.ExecuteIfBound();
     break;
   }

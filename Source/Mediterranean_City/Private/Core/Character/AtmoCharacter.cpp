@@ -96,7 +96,7 @@ void AAtmoCharacter::Tick(float DeltaSeconds)
 
 // Begin Actions ---
 
-void AAtmoCharacter::SitDown(const USceneComponent* Target)
+void AAtmoCharacter::SitDown(const USceneComponent* Target, bool isCinemtatic)
 {
   if (APlayerController* PlayerController = Cast<APlayerController>(Controller)) {
     if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer())) {
@@ -107,10 +107,22 @@ void AAtmoCharacter::SitDown(const USceneComponent* Target)
   GetMotionWarper()->AddOrUpdateWarpTargetFromComponent(FName("SeatTarget"), Target, NAME_None, false);
   GetActionAnimComponent()->SitDown();
 
+  if (isCinemtatic) return;
+
   TimeToSkipTo = FMath::TruncToInt(UCaelumUtilities::GetTimeOfDaySystem(this)->GetCurrentTime()) + 1;
 
   UIComponent->ToggleBenchUI();
   UIComponent->ShowHelpUI();
+}
+
+void AAtmoCharacter::EnableLookOnly()
+{
+  if (APlayerController* PlayerController = Cast<APlayerController>(Controller)) {
+    if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer())) {
+      Subsystem->ClearAllMappings();
+      Subsystem->AddMappingContext(LookOnlyContext, 0);
+    }
+  }
 }
 
 void AAtmoCharacter::StandUp(const FInputActionValue& Value)

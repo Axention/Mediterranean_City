@@ -50,7 +50,9 @@ public:
 
   UMotionWarpingComponent* GetMotionWarper() const { return MotionWarper; }
 
-  void SitDown(const USceneComponent* Target);
+  void SitDown(const USceneComponent* Target, bool isCinematic);
+
+  void EnableLookOnly();
 
 protected:
   virtual void BeginPlay() override;
@@ -108,6 +110,9 @@ protected:
   /*Holds the time the player wants to skip to.*/
   UPROPERTY(BlueprintReadOnly)
   int TimeToSkipTo;
+
+  UPROPERTY(EditDefaultsOnly, Category = "Input|Misc")
+  TObjectPtr<UInputMappingContext> LookOnlyContext;
 
   // Variables End ---
   //
