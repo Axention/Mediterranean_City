@@ -14,6 +14,8 @@ class MEDITERRANEAN_CITY_API UCaelumGameUserSettings : public UGameUserSettings
 
 public:
 
+  UCaelumGameUserSettings();
+
   UFUNCTION(BlueprintCallable)
   static UCaelumGameUserSettings* GetGameSettings();
 

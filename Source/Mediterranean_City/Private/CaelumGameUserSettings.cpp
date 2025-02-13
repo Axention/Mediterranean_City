@@ -4,6 +4,12 @@
 #include "CaelumGameUserSettings.h"
 
 
+UCaelumGameUserSettings::UCaelumGameUserSettings()
+{
+  MusicVolume = 0.5;
+  SFXVolume = 0.5;
+}
+
 UCaelumGameUserSettings* UCaelumGameUserSettings::GetGameSettings()
 {
   return CastChecked<UCaelumGameUserSettings>(GetGameUserSettings());
