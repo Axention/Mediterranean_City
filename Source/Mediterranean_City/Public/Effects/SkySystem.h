@@ -260,11 +260,12 @@ protected:
   // ----- Components End
 
 private:
+  UPROPERTY(VisibleAnywhere)
   float TimeskipRemaining;
+  UPROPERTY(VisibleAnywhere)
   float InternalTimeskipSpeed;
   float InternalTotalTimeskip;
   float InternalTimeMultiplier;
-  FTimerHandle TimeSkipHandle;
 
   FAzimuthialCoords SunCoords;
   FAzimuthialCoords MoonCoords;

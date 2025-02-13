@@ -213,15 +213,17 @@ void ASkySystem::TickWeather(float deltaSeconds)
   float _Time;
   if (WeatherParams) {
     WeatherParams->GetScalarParameterValue("Time", _Time);
-    WeatherParams->SetScalarParameterValue("Time", _Time + (deltaSeconds * InternalTimeskipSpeed));
+    WeatherParams->SetScalarParameterValue("Time", _Time + (deltaSeconds * SimulationSpeed * (1.f / 3600.f) * InternalTimeskipSpeed));
   }
 
+  // random weather change event
   if (bBlendingWeather == false) {
     InternalRandomTickTotalCooldown -= deltaSeconds;
     RndWeatherEvent();
   }
   WeatherTimeline.TickTimeline(deltaSeconds);
 
+  // dry out wetness & puddles
   if (GetWorldTimerManager().TimerExists(PuddleHandle)) {
     float Alpha = GetWorldTimerManager().GetTimerElapsed(PuddleHandle) / PuddleFadeTime;
     WeatherParams->SetScalarParameterValue("PuddleAmount", FMath::Lerp(PuddleAmountInternalSnap, 0.f, Alpha));
@@ -265,12 +267,14 @@ void ASkySystem::OnWeatherBlendFin()
 {
   bBlendingWeather = false;
 
+  // set some problematic params again -> would otherwise reset to default
   WeatherParams->SetScalarParameterValue("coverage", CurrentWeather->CloudCoverage);
   WeatherParams->SetScalarParameterValue("precipitation", CurrentWeather->Percipitation);
   WeatherParams->SetScalarParameterValue("PuddleAmount", CurrentWeather->bHasRain ? 0.9f : PreviousWeather->bHasRain ? 0.7f : 0.f);
 
   if (!CurrentWeather->bHasRain) RainParticles->Deactivate();
 
+  // start wetness & puddle drying timer
   if (PreviousWeather->bHasRain) {
     WeatherParams->GetScalarParameterValue("PuddleAmount", PuddleAmountInternalSnap);
     WeatherParams->GetScalarParameterValue("Wetness", InternalWetnessSnap);
@@ -292,20 +296,20 @@ void ASkySystem::TickTime(float DeltaSeconds)
   float TimeDelta = DeltaSeconds * SimulationSpeed * (1.f / 3600.f);
   InternalTimeskipSpeed = 1.f;
 
-  if (GetWorldTimerManager().IsTimerActive(TimeSkipHandle)) {
-    float TimeSkipMul = (3600.f * InternalTotalTimeskip) / (((TimeSkipDuration / 3.42f) + 3.f) * SimulationSpeed);
+  if (TimeskipRemaining >= 0.f) {
+    float TimeSkipMul = (3600.f * InternalTotalTimeskip) / ((TimeSkipDuration / 3.42f) + 3.f * SimulationSpeed);
     const float EasingCorrection = 0.9f;
     TimeSkipMul = TimeSkipMul / EasingCorrection;
-    float EasedTimeSkip = TimeSkipEase->GetFloatValue(GetWorldTimerManager().GetTimerElapsed(TimeSkipHandle) / TimeSkipDuration);
+    float EasedTimeSkip = TimeSkipEase->GetFloatValue(TimeskipRemaining / InternalTotalTimeskip);
     InternalTimeskipSpeed = FMath::Lerp(1.f, TimeSkipMul, EasedTimeSkip);
   }
 
+
+  // decrease timeskip remainder until depleted
   if (TimeskipRemaining > 0.f)
-    TimeskipRemaining = TimeskipRemaining - TimeDelta * InternalTimeskipSpeed;
+    TimeskipRemaining -= TimeDelta * InternalTimeskipSpeed;
 
-  InternalTimeMultiplier = TimeskipRemaining <= 0.f ? 1.f : InternalTimeskipSpeed;
-
-  ChangeTime(TimeDelta * InternalTimeMultiplier);
+  ChangeTime(TimeDelta * InternalTimeskipSpeed);
 }
 
 void ASkySystem::ChangeTime(float Amount)
@@ -313,7 +317,6 @@ void ASkySystem::ChangeTime(float Amount)
   float newLocalTime = SimData.LocalTime + Amount;
 
   UpdateSimulationTimeDate(newLocalTime);
-
   SimData.LocalTime = Astro::Overflow(newLocalTime, 24.f);
 
   OnTimeChanged.Broadcast(SimData.LocalTime);
@@ -450,21 +453,22 @@ void ASkySystem::CalculatePlanetaryPositions()
 
 void ASkySystem::UpdateLighting()
 {
+  float DoYNormalized = (float)SimData.GetDayOfYear() / (float)FDateTime::DaysInYear(SimData.Year);
+
   Sun->SetRelativeRotation(FRotator(-SunCoords.altitude, SunCoords.azimuth + SimData.NorthOffset, 0.0));
   Moon->SetRelativeRotation(FRotator(-MoonCoords.altitude, MoonCoords.azimuth + SimData.NorthOffset, 0.0));
-
-  float DoYNormalized = (float)SimData.GetDayOfYear() / (float)FDateTime::DaysInYear(SimData.Year);
   SkySphere->SetRelativeRotation(FRotator(
     SimData.Latitude,
     180.0 + SimData.NorthOffset,
     180.f - (SimData.LocalTime * 15.f) - (DoYNormalized * 360.f) - SimData.Longitude));
 
+  // ----- Begin Light & Exposure Adjustments
   const float SunNormalizedTwilight = (UKismetMathLibrary::FClamp(SunCoords.altitude, -18.0, 6.0) + 18.f) / 24.f;
   if (SunIntensityFalloff)
     Sun->SetIntensity(SunLux * SunIntensityFalloff->GetFloatValue(SunNormalizedTwilight));
 
   PostProcess->Settings.AutoExposureMinBrightness = MinExposureCurve->GetFloatValue(SunCoords.altitude);
-
+  // ----- End Light & Exposure Adjustments
 
   // ----- Begin Lighting Optimization
   if (SunCoords.altitude < -2.0 && Sun->CastDynamicShadows == true) {
@@ -507,7 +511,7 @@ void ASkySystem::UpdateLighting()
   }
   // ----- End Lighting Optimization
 
-  SkyLight->UpdateLighting(SunCoords.altitude);
+  SkyLight->UpdateLighting(SunCoords.altitude); // Update Non-Lumen Lighting
 }
 
 // End Internal Sky Updates ---
@@ -522,14 +526,15 @@ void ASkySystem::ChangeWeather(UWeatherPreset* newWeather)
   PreviousWeather = CurrentWeather;
   CurrentWeather = newWeather;
 
+  // Parameter Snapshots for blending
   WeatherParams->GetScalarParameterValue("PuddleAmount", PuddleAmountInternalSnap);
   WeatherParams->GetScalarParameterValue("Wetness", InternalWetnessSnap);
 
   WeatherTimeline.SetFloatCurve(CurrentWeather->BlendCurve, FName("Alpha"));
   WeatherTimeline.PlayFromStart();
   bBlendingWeather = true;
-  if (CurrentWeather->bHasRain) RainParticles->Activate();
 
+  if (CurrentWeather->bHasRain) RainParticles->Activate();
 }
 
 void ASkySystem::SkipTime(float newTime)
@@ -542,7 +547,6 @@ void ASkySystem::SkipTime(float newTime)
   }
 
   InternalTotalTimeskip = TimeskipRemaining;
-  GetWorldTimerManager().SetTimer(TimeSkipHandle, TimeSkipDuration, FTimerManagerTimerParameters());
 }
 
 // End External Callable Functions ---
