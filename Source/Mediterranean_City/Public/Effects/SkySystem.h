@@ -190,6 +190,9 @@ protected:
   UPROPERTY(EditDefaultsOnly, Category = "Lighting", AdvancedDisplay)
   TObjectPtr<UCurveFloat> SunIntensityFalloff;
 
+  UPROPERTY(EditDefaultsOnly, Category = "Lighting")
+  TObjectPtr<UCurveFloat> MinExposureCurve;
+
   /*Interval in Seconds: How often a random weather event can happen. (Only acts as a "Tick". Event is decided by chance.)*/
   UPROPERTY(EditAnywhere, Category = "Weather")
   float RandomTickCooldown;
@@ -224,6 +227,8 @@ protected:
   /*Defines how long the time-skipping interaction takes.*/
   UPROPERTY(EditAnywhere, Category = "Other")
   float TimeSkipDuration;
+
+
 
   // ----- Components Begin
   UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)

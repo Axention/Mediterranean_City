@@ -463,6 +463,8 @@ void ASkySystem::UpdateLighting()
   if (SunIntensityFalloff)
     Sun->SetIntensity(SunLux * SunIntensityFalloff->GetFloatValue(SunNormalizedTwilight));
 
+  PostProcess->Settings.AutoExposureMinBrightness = MinExposureCurve->GetFloatValue(SunCoords.altitude);
+
 
   // ----- Begin Lighting Optimization
   if (SunCoords.altitude < -2.0 && Sun->CastDynamicShadows == true) {
